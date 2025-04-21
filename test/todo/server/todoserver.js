@@ -1,4 +1,4 @@
-import TopazCubeServer from "topazcube"
+import TopazCubeServer from "topazcube/server"
 
 class TodoServer extends TopazCubeServer {
   constructor() {

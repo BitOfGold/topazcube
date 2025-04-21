@@ -10,7 +10,7 @@ export default defineConfig({
       name: "TopazCube",
       // the proper extensions will be added
       fileName: "topazcube",
-      formats: ["es", "cjs"],
+      formats: ["es"],
     },
     outDir: resolve(__dirname, "dist"),
     emptyOutDir: true, 

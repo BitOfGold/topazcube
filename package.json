@@ -1,6 +1,6 @@
 {
   "name": "topazcube",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "TopazCube is a real-time collaborative document editing, and multiplayer game library.",
   "author": "László Matuska @BitOfGold",
   "license": "Apache-2.0",
@@ -32,8 +32,15 @@
   ],
   "sideEffects": false,
   "exports": {
-    "import": "./dist/topazcube.js",
-    "require": "./dist/topazcube.cjs"
+    ".": {
+      "import": "./dist/topazcube.js"
+    },
+    "./client": {
+      "import": "./dist/topazcube.js"
+    },
+    "./server": {
+      "import": "./src/server.js"
+    }
   },
   "type": "module",
   "scripts": {
@@ -42,12 +49,13 @@
     "preview": "vite preview --host 0.0.0.0 --port 8800"
   },
   "devDependencies": {
-    "vite": "^6.2.0"
+    "vite": "^6.3.2"
   },
   "dependencies": {
-    "@msgpack/msgpack": "^3.1.0",
+    "@msgpack/msgpack": "^3.1.1",
     "fast-json-patch": "^3.1.1",
     "mongodb": "^6.15.0",
+    "util": "^0.12.5",
     "ws": "^8.18.1"
   }
 }
