@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import TopazCubeClient from "../../src/client.js"
+import TopazCubeClient from "topazcube"
 import "./index.css"
 import { GripHorizontal, Trash2 } from "lucide-react"
 
