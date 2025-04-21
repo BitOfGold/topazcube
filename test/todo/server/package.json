@@ -1,0 +1,19 @@
+{
+  "name": "topazcube-test-server",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "reset && nodemon todoserver.js"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  },
+  "dependencies": {
+    "@msgpack/msgpack": "^3.1.0",
+    "collections": "^5.1.13",
+    "fast-json-patch": "^3.1.1",
+    "mongodb": "^6.15.0",
+    "ws": "^8.18.1"
+  }
+}

@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+h1 {
+    @apply text-2xl font-bold pb-4;
+}
+
+h2 {
+    @apply text-xl font-bold pb-2;
+}
+
+button {
+    @apply transition-all duration-300 font-bold px-2 py-1 rounded-md hover:opacity-50 hover:scale-115 cursor-pointer;
+}
