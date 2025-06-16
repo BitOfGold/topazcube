@@ -1,12 +1,14 @@
 {
-  "name": "topazcube-test-server",
+  "name": "topazcube-todo-server",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "reset && nodemon todoserver.js"
+    "dev": "reset && nodemon todoserver.ts --watch"
   },
   "devDependencies": {
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
     "vite": "^6.2.0"
   },
   "dependencies": {

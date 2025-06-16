@@ -1,6 +1,6 @@
 {
   "name": "topazcube",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "TopazCube is a real-time collaborative document editing, and multiplayer game library.",
   "author": "László Matuska @BitOfGold",
   "license": "Apache-2.0",
@@ -12,9 +12,13 @@
   "bugs": {
     "url": "https://github.com/BitOfGold/topazcube/issues"
   },
+  "types": "./dist/index.d.ts",
   "files": [
     "src",
-    "dist",
+    "dist/*",
+    "index.d.ts",
+    "server.d.ts",
+    "client.d.ts",
     "LICENSE",
     "README.md"
   ],
@@ -32,29 +36,39 @@
   ],
   "sideEffects": false,
   "exports": {
-    ".": {
-      "import": "./dist/topazcube.js"
-    },
     "./client": {
-      "import": "./dist/topazcube.js"
+      "import": "./dist/topazcube-client.js"
     },
     "./server": {
-      "import": "./src/server.js"
+      "import": "./dist/topazcube-server.js"
+    },
+    "./terminal": {
+      "import": "./src/terminal.js"
     }
   },
   "type": "module",
   "scripts": {
-    "dev": "reset && vite --host 0.0.0.0 --port 8800",
-    "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0 --port 8800"
+    "patch": "patch-package",
+    "dev:server": "NODE_ENV=development LIB_NAME=server vite build  --watch",
+    "dev:client": "NODE_ENV=development LIB_NAME=client vite build  --watch",
+    "dev": "reset && npm run dev:server && npm run dev:client",
+    "build:server": "NODE_ENV=production LIB_NAME=server vite build",
+    "build:client": "NODE_ENV=production LIB_NAME=client vite build",
+    "build:types": "tsc src/*.ts --declaration --emitDeclarationOnly --declarationDir dist/ --target es2022 --moduleResolution node",
+    "build": "reset && npm run build:server && npm run build:client && npm run build:types"
   },
   "devDependencies": {
-    "vite": "^6.3.2"
+    "@types/node": "^22.15.3",
+    "vite": "^6.3.2",
+    "vite-plugin-externalize-deps": "^0.9.0"
   },
   "dependencies": {
-    "@msgpack/msgpack": "^3.1.1",
+    "@roamhq/wrtc": "^0.8.0",
     "fast-json-patch": "^3.1.1",
+    "gl-matrix": "^3.4.3",
     "mongodb": "^6.15.0",
+    "msgpackr": "^1.11.2",
+    "patch-package": "^8.0.0",
     "util": "^0.12.5",
     "ws": "^8.18.1"
   }
