@@ -7,7 +7,7 @@ const MAX_COMPRESSED_BUFFER_SIZE = 999999
 const lib_compress = promisify(gzip)
 const lib_decompress = promisify(gunzip)
 
-export async function compress(buffer) {
+export async function compress(buffer:Uint8Array<ArrayBufferLike>) {
   if (buffer.byteLength <= MIN_COMPRESSED_BUFFER_SIZE || buffer.byteLength >= MAX_COMPRESSED_BUFFER_SIZE) return buffer
   try {
     let t1 = Date.now()
@@ -27,7 +27,7 @@ export async function compress(buffer) {
   }
 }
 
-export async function decompress(buffer) {
+export async function decompress(buffer:Uint8Array<ArrayBufferLike>) {
   try {
     let cbytes = await lib_decompress(buffer)
     let cbuffer = Buffer.from(cbytes)

@@ -1,6 +1,6 @@
 {
   "name": "topazcube",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "TopazCube is a real-time collaborative document editing, and multiplayer game library.",
   "author": "László Matuska @BitOfGold",
   "license": "Apache-2.0",
@@ -37,30 +37,31 @@
   "sideEffects": false,
   "exports": {
     "./client": {
-      "import": "./dist/topazcube-client.js"
+      "import": "./dist/client.js",
+      "require": "./dist/client.cjs"
     },
     "./server": {
-      "import": "./dist/topazcube-server.js"
+      "import": "./dist/server.js",
+      "require": "./dist/server.cjs"
     },
     "./terminal": {
-      "import": "./src/terminal.js"
+      "import": "./dist/terminal.js",
+      "require": "./dist/terminal.cjs"
     }
   },
   "type": "module",
   "scripts": {
-    "patch": "patch-package",
-    "dev:server": "NODE_ENV=development LIB_NAME=server vite build  --watch",
-    "dev:client": "NODE_ENV=development LIB_NAME=client vite build  --watch",
-    "dev": "reset && npm run dev:server && npm run dev:client",
-    "build:server": "NODE_ENV=production LIB_NAME=server vite build",
-    "build:client": "NODE_ENV=production LIB_NAME=client vite build",
-    "build:types": "tsc src/*.ts --declaration --emitDeclarationOnly --declarationDir dist/ --target es2022 --moduleResolution node",
-    "build": "reset && npm run build:server && npm run build:client && npm run build:types"
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf dist"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
-    "vite": "^6.3.2",
-    "vite-plugin-externalize-deps": "^0.9.0"
+    "@types/ws": "^8.18.1",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@roamhq/wrtc": "^0.8.0",

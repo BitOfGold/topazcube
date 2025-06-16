@@ -2,7 +2,7 @@ const browserFormat = 'gzip'
 
 const MIN_COMPRESSED_BUFFER_SIZE = 256
 
-export async function compress(buffer) {
+export async function compress(buffer:Uint8Array<ArrayBufferLike>) {
   if (buffer.byteLength <= MIN_COMPRESSED_BUFFER_SIZE) return buffer
   if (typeof CompressionStream !== 'undefined') {
     const cs = new CompressionStream(browserFormat)
@@ -15,7 +15,7 @@ export async function compress(buffer) {
   }
 }
 
-export async function decompress(buffer) {
+export async function decompress(buffer:Uint8Array<ArrayBufferLike>) {
   if (typeof DecompressionStream !== 'undefined') {
     try {
       const ds = new DecompressionStream(browserFormat)

@@ -16,15 +16,15 @@ import {
 } from './utils'
 import { compress, decompress } from './compress-node'
 import fastjsonpatch from 'fast-json-patch'
-import { WebSocketServer } from 'ws'
-import { MongoClient } from 'mongodb'
+import { WebSocketServer, WebSocket } from 'ws'
+import { MongoClient, Db } from 'mongodb'
 import * as wrtc from '@roamhq/wrtc' // Server-side WebRTC implementation
 import { doesNotThrow } from 'assert'
 import { glMatrix, vec3, quat } from 'gl-matrix'
 glMatrix.setMatrixArrayType(Array)
 
 // entities/ID/
-const fastPatchProperties:any = {
+const fastPatchProperties: Record<string, boolean> = {
   'type': true, // string 'enemy'
   'status': true, // string 'idle'
   'level': true, // number 2
@@ -39,7 +39,7 @@ const fastPatchProperties:any = {
   'scale': true, // [1, 1, 1] Vector (Number)
 }
 
-const dictionaryProperties:any = {
+const dictionaryProperties: Record<string, boolean> = {
   'type': true,
   'status': true,
   'level': true,
@@ -60,6 +60,18 @@ const LITTLE_ENDIAN = (() => {
 
 const MAX_PACKAGE_SIZE = 65400; // Slightly below the 65535 limit to allow for overhead
 
+
+type ClientType = any
+
+interface StatsType {
+  tUpdate: number[]
+  tPatch: number[]
+  send: number
+  sendRTC: number
+  _sendRTCUpdate: number
+  [key: string]: any
+}
+
 export default class TopazCubeServer {
   name = 'TopazCubeServer'
   cycle = 100
@@ -69,8 +81,8 @@ export default class TopazCubeServer {
   key = './cert/key.pem'
   cert = './cert/fullchain.pem'
   MongoUrl = 'mongodb://localhost:27017'
-  mongoClient:any = null
-  DB:any = null
+  mongoClient: MongoClient | null = null
+  DB: Db | null = null
   database = 'topazcube'
   collection = 'documents'
   allowSave = true
@@ -81,18 +93,18 @@ export default class TopazCubeServer {
   simulateLatency = 0
 
   _lastUID = 100
-  clients = []
-  documents = {}
-  isLoading = {}
-  _documentChanges = {}
-  _documentState = {}
+  clients: ClientType[] = []
+  documents: Record<string, any> = {}
+  isLoading: Record<string, boolean> = {}
+  _documentChanges: Record<string, any[]> = {}
+  _documentState: Record<string, any> = {}
 
   update = 0
   lastUpdate = 0
-  _loopiv:any = null
-  _statsiv:any = null
+  _loopiv: any = null
+  _statsiv: any = null
   _stillUpdating = false
-  stats = {
+  stats: StatsType = {
     tUpdate: [],
     tPatch: [],
     send: 0,
@@ -100,7 +112,7 @@ export default class TopazCubeServer {
     _sendRTCUpdate: 0
   }
 
-  _wss:any = null
+  _wss: WebSocketServer | null = null
   _exited = false
 
   constructor({
@@ -119,7 +131,23 @@ export default class TopazCubeServer {
     allowFastPatch = false,
     allowCompression = false,
     simulateLatency = 0,
-  }) {
+  }: {
+    name?: string
+    cycle?: number
+    port?: number
+    useHttps?: boolean
+    key?: string
+    cert?: string
+    MongoUrl?: string
+    database?: string
+    collection?: string
+    allowSave?: boolean
+    allowSync?: boolean
+    allowWebRTC?: boolean
+    allowFastPatch?: boolean
+    allowCompression?: boolean
+    simulateLatency?: number
+  } = {}) {
     this.name = name
     this.cycle = cycle
     this.port = port
@@ -139,7 +167,7 @@ export default class TopazCubeServer {
     this._initDB()
 
     if (useHttps) {
-      let httpsServer:any = https.createServer({
+      let httpsServer: https.Server | null = https.createServer({
         key: fs.readFileSync(this.key),
         cert: fs.readFileSync(this.cert),
       }, (req, res) => {
@@ -153,7 +181,7 @@ export default class TopazCubeServer {
       this._wss = new WebSocketServer({ port: this.port })
       console.log(this.name + ' running on port ' + this.port)
     }
-    this._wss.on('connection', (client) => {
+    this._wss.on('connection', (client: WebSocket) => {
       this._onConnected(client)
     })
 
@@ -175,7 +203,7 @@ export default class TopazCubeServer {
     process.stdin.resume()
     process.stdin.setEncoding('utf8')
 
-    process.stdin.on('data', (key:any) => {
+    process.stdin.on('data', (key: any) => {
       key = (''+key).trim()
 
       // ctrl-c ( end of text )
@@ -207,13 +235,13 @@ export default class TopazCubeServer {
 
   // to be redefined. Called before a new document is created. Returns true if
   // the client has the right to create an empty document
-  canCreate(client, name) {
+  canCreate(client: ClientType, name: string): boolean {
     return true
   }
 
   // to be redefined. Called when a new document is created
   // (returns an empty document)
-  onCreate(name:string):any {
+  onCreate(name: string): any {
     return {
       data: {},
     }
@@ -221,19 +249,19 @@ export default class TopazCubeServer {
 
   // to be redefined. Called when a client wants to sync (modify) a document.
   // Returns true if the client has the right to sync that operation.
-  canSync(client, name, op) {
+  canSync(client: ClientType, name: string, op: any): boolean {
     return true
   }
 
   // to be redefined. Called when a new document is hydrated
   // (created, or loaded from db)
-  async onHydrate(name:string, document:any) {
+  async onHydrate(name: string, document: any): Promise<void> {
     document.__hydrated = true
   }
 
-  _makeReactive(name) {
+  _makeReactive(name: string): void {
     //console.log(`Making document '${name}' reactive`, this.documents[name])
-    let ep = false
+    let ep: any = false
     if (this.allowFastPatch) {
       ep = fastPatchProperties
     }
@@ -249,7 +277,7 @@ export default class TopazCubeServer {
     }
   }
 
-  _createEmptyDocument(name) {
+  _createEmptyDocument(name: string): void {
     let doc = this.onCreate(name)
     if (!doc) {
       return
@@ -257,7 +285,7 @@ export default class TopazCubeServer {
     this.documents[name] = doc
   }
 
-  async _waitLoad(name) {
+  async _waitLoad(name: string): Promise<void> {
     if (this.isLoading[name]) {
       while (this.isLoading[name]) {
         await new Promise((resolve) => setTimeout(resolve, 50))
@@ -265,7 +293,7 @@ export default class TopazCubeServer {
     }
   }
 
-  async _checkDocument(name, client) {
+  async _checkDocument(name: string, client: ClientType): Promise<void> {
     await this._waitLoad(name)
     if (!this.documents[name]) {
       this.isLoading[name] = true
@@ -285,13 +313,13 @@ export default class TopazCubeServer {
     }
   }
 
-  _updateAllDocumentsState() {
+  _updateAllDocumentsState(): void {
     for (let name in this.documents) {
       if (name != '_server') {
         let doc = this.documents[name]
         this._documentState[name].subscibers = 0
         for (let client of this.clients) {
-          if (client.subscribed[name]) {
+          if (client.subscribed && client.subscribed[name]) {
             this._documentState[name].subscibers++
           }
         }
@@ -302,9 +330,9 @@ export default class TopazCubeServer {
   /*= UPDATE LOOP ============================================================*/
 
   // to be redefined. called every this.cycle ms
-  onUpdate(name, doc, dt) {}
+  onUpdate(name: string, doc: any, dt: number): void {}
 
-  _startLoop() {
+  _startLoop(): void {
     this.lastUpdate = Date.now()
     this._loop()
     this._statsiv = setInterval(() => {
@@ -312,7 +340,7 @@ export default class TopazCubeServer {
     }, 1000)
   }
 
-  _loop() {
+  _loop(): void {
     let now = Date.now()
     let dtms = (now - this.lastUpdate)
     let dt = dtms / 1000.0 // Convert to seconds
@@ -355,14 +383,14 @@ export default class TopazCubeServer {
     }, Math.max(this.cycle - totalUpdate, 10))
   }
 
-  _doStats() {
+  _doStats(): void {
     for (let key in this.stats) {
       let i = this.stats[key]
-      if (i.length > 0) {
+      if (Array.isArray(i) && i.length > 0) {
         while (i.length > 60) {
           i.shift()
         }
-        this.stats['_avg_' + key] = i.reduce((a, b) => a + b, 0) / i.length
+        this.stats['_avg_' + key] = i.reduce((a: number, b: number) => a + b, 0) / i.length
       } else if (!key.startsWith('_')) {
         this.stats['_persec_' + key] = i / 3.0
         this.stats[key] = 0
@@ -374,15 +402,15 @@ export default class TopazCubeServer {
   /*= MESSAGES ===============================================================*/
 
   // to be redefined. Called on message (operation) from client
-  onMessage(client, message) {}
+  onMessage(client: ClientType, message: any): void {}
 
   // to be redefined. Called when a client connects
-  onConnect(client) {}
+  onConnect(client: ClientType): void {}
 
   // to be redefined. Called when a client disconnects
-  onDisconnect(client:any) {}
+  onDisconnect(client: ClientType): void {}
 
-  _onConnected(client:any) {
+  _onConnected(client: ClientType): void {
     client.ID = this.getUID()
     client.ping = 0
     client.ctdiff = 0
@@ -395,7 +423,7 @@ export default class TopazCubeServer {
     client.on('error', () => {
       this._onError(client, arguments)
     })
-    client.on('message', (message) => {
+    client.on('message', (message:any) => {
       let dec = decode(message)
       if (this.simulateLatency) {
         setTimeout(() => {
@@ -405,17 +433,18 @@ export default class TopazCubeServer {
         this._onMessage(client, dec)
       }
     })
-    client.on('close', (message) => {
+    client.on('close', (message:any) => {
       this._onDisconnected(client)
       this.onDisconnect(client)
     })
     this.onConnect(client)
   }
 
-  async _onMessage(client, message) {
+  async _onMessage(client: ClientType, message: any): Promise<void> {
     if (
       message.c == 'sync' &&
       this.allowSync &&
+      client.subscribed &&
       client.subscribed[message.n] &&
       this.documents[message.n]
     ) {
@@ -458,20 +487,24 @@ export default class TopazCubeServer {
         })
         return
       }
-      client.subscribed[message.n] = true
+      if (client.subscribed) {
+        client.subscribed[message.n] = true
+      }
       this._sendFullState(message.n, client)
     } else if (message.c == 'unsub') {
-      client.subscribed[message.n] = false
+      if (client.subscribed) {
+        client.subscribed[message.n] = false
+      }
     } else {
       this.onMessage(client, message)
     }
   }
 
-  _onError(client, args) {
+  _onError(client: ClientType, args: IArguments): void {
     console.error('onError:', args)
   }
 
-  _onDisconnected(client) {
+  _onDisconnected(client: ClientType): void {
     if (client.dataChannel) {
       client.dataChannel.close()
     }
@@ -485,7 +518,7 @@ export default class TopazCubeServer {
     }
   }
 
-  async send(client, message) {
+  async send(client: ClientType, message: any): Promise<void> {
     try {
       let t1 = Date.now()
       let data = encode(message)
@@ -511,7 +544,7 @@ export default class TopazCubeServer {
     }
   }
 
-  async broadcast(message:object, clients:any = false) {
+  async broadcast(message: object, clients: ClientType[] | false = false): Promise<void> {
     if (!clients) {
       clients = this.clients
     }
@@ -531,15 +564,15 @@ export default class TopazCubeServer {
     }
   }
 
-  async _sendFullState(name, client) {
+  async _sendFullState(name: string, client: ClientType): Promise<void> {
     await this._waitLoad(name)
-    let excluded:any = '_'
+    let excluded: any = '_'
     if (this.allowFastPatch) {
       excluded = fastPatchProperties
     }
     let doc = clonewo_(this.documents[name], excluded)
     limitPrecision(doc)
-    let fdata:any = false
+    let fdata: any = false
     if (this.allowFastPatch) {
       fdata = this._encodeFastChanges(name, false)
     }
@@ -554,7 +587,7 @@ export default class TopazCubeServer {
     this.send(client, fullState)
   }
 
-  _encodeFastChanges(name, changesOnly = true) {
+  _encodeFastChanges(name: string, changesOnly = true): any {
     let doc = this.documents[name]
     if (!doc) { return false }
     let origin = this.documents[name].origin
@@ -566,11 +599,11 @@ export default class TopazCubeServer {
     let entities = doc.entities
     let ids = Object.keys(entities)
     if (!entities) { return false }
-    let count = {}
-    let changed = {}
-    let hasChanges = {}
-    let dictionary = {}
-    let encodedChanges = {}
+    let count: Record<string, number> = {}
+    let changed: any = {}
+    let hasChanges: any = {}
+    let dictionary: any = {}
+    let encodedChanges: any = {}
 
     for (let key in fastPatchProperties) {
       if (changesOnly) {
@@ -592,9 +625,9 @@ export default class TopazCubeServer {
         let e = entities[id]
         for (let key in fastPatchProperties) {
           if (e['__changed_' + key]) {
-            changed[key][id] = true
-            count[key]++
-            hasChanges[key] = true
+            changed[''+key][''+id] = true
+            count[''+key] = parseInt(''+count[''+key]) + 1
+            hasChanges[''+key] = true
             e['__changed_' + key] = false
           }
         }
@@ -602,7 +635,7 @@ export default class TopazCubeServer {
     } else {
       for (let id in entities) {
         for (let key in fastPatchProperties) {
-          changed[key][id] = true
+          changed[''+key][''+id] = true
         }
       }
     }
@@ -630,8 +663,8 @@ export default class TopazCubeServer {
     //
     for (let key in hasChanges) {
       if (hasChanges[key]) {
-        let size = count[key]
-        let encoded:any = {}
+        let size = parseInt(''+count[''+key])
+        let encoded: any = {}
         if (dictionaryProperties[key]) {
           encoded.dict = dictionary[key]
 
@@ -650,13 +683,15 @@ export default class TopazCubeServer {
           encoded.pdata = pdata
         } else {
 
-          let pdata
+          let pdata: Uint8Array
           if (key == 'position') {
             pdata = new Uint8Array(size * 13)
           } else if (key == 'rotation') {
             pdata = new Uint8Array(size * 16)
           } else if (key == 'scale') {
             pdata = new Uint8Array(size * 16)
+          } else {
+            pdata = new Uint8Array(0)
           }
 
           let offset = 0
@@ -699,15 +734,15 @@ export default class TopazCubeServer {
     return encodedChanges
   }
 
-  _sendPatches() {
+  _sendPatches(): void {
     let now = Date.now()
 
     for (let name in this._documentChanges) {
       let dc = this._documentChanges[name]
       this._documentChanges[name] = []
-      let sus = this.clients.filter((client) => client.subscribed[name])
+      let sus = this.clients.filter((client) => client.subscribed && client.subscribed[name])
       if (sus.length > 0) {
-        if (dc.length > 0) {
+        if (dc && dc.length > 0) {
           let record = {
             c: 'patch',
             t: now, // server time
@@ -739,11 +774,11 @@ export default class TopazCubeServer {
     }
   }
 
-  _onDocumentChange(name, op, target, path, value) {
-    this._documentChanges[name].push(opmsg(op, target, path, value))
+  _onDocumentChange(name: string, op: any, target: any, path: any, value: any): void {
+    this._documentChanges[name]?.push(opmsg(op, target, path, value))
   }
 
-  propertyChange(name, id, property) {
+  propertyChange(name: string, id: string | number, property: string): void {
     let doc = this.documents[name]
     if (!doc) { return }
     let entities = doc.entities
@@ -757,7 +792,7 @@ export default class TopazCubeServer {
 
   /*= WEBRTC ===================================================================*/
 
-  async _processOffer(client, data) {
+  async _processOffer(client: ClientType, data: any): Promise<void> {
     //console.log("RTC: Offer received", data);
     const peerConnection = new wrtc.RTCPeerConnection({
       iceServers: [
@@ -770,13 +805,13 @@ export default class TopazCubeServer {
 
     client.peerConnection = peerConnection
 
-    peerConnection.onicecandidate = (event) => {
+    peerConnection.onicecandidate = (event: any) => {
       if (event.candidate) {
         //console.log("RTC: ICE candidate generated", event.candidate.candidate.substring(0, 50) + "...");
         this.send(client, {
           c: 'rtc-candidate',
           type: 'ice-candidate',
-          candidate: event.candidate.toJSON(),
+          candidate: event.candidate, // .toJSON()
         })
       } else {
         //console.log("RTC: ICE candidate gathering complete");
@@ -841,11 +876,11 @@ export default class TopazCubeServer {
         console.log(`RTC: Data channel closed for client ${client.ID}`)
       }
 
-      client.dataChannel.onerror = (error) => {
+      client.dataChannel.onerror = (error: Event) => {
         console.error(`RTC: Data channel error for client ${client.ID}:`, error)
       }
 
-      client.dataChannel.onmessage = (event) => {
+      client.dataChannel.onmessage = (event: MessageEvent) => {
         try {
           const data = decode(event.data)
           console.log(
@@ -879,12 +914,13 @@ export default class TopazCubeServer {
     }
   }
 
-  async _processICECandidate(client, data) {
+  async _processICECandidate(client: ClientType, data: any): Promise<void> {
     //console.log(`RTC: Processing ICE candidate from client ${client.ID}`);
     try {
       if (client.peerConnection && data.candidate) {
         await client.peerConnection.addIceCandidate(
-          new wrtc.RTCIceCandidate(data.candidate)
+          data.candidate
+          //new wrtc.RTCIceCandidate(data.candidate)
         )
         //console.log(`RTC: ICE candidate added successfully for client ${client.ID}`);
       } else {
@@ -895,11 +931,11 @@ export default class TopazCubeServer {
     }
   }
 
-  _clientRTCOpen(client) {
-    return client.dataChannel && client.dataChannel.readyState === 'open'
+  _clientRTCOpen(client: ClientType): boolean {
+    return client.dataChannel !== null && client.dataChannel !== undefined && client.dataChannel.readyState === 'open'
   }
 
-  async sendRTC(client, message) {
+  async sendRTC(client: ClientType, message: any): Promise<void> {
     let data = encode(message)
     if (this.allowCompression) {
       data = await compress(data)
@@ -913,20 +949,20 @@ export default class TopazCubeServer {
       setTimeout(() => {
         if (this._clientRTCOpen(client)) {
           packages.forEach((p) => {
-            client.dataChannel.send(p)
+            client.dataChannel!.send(p)
           })
         }
       }, this.simulateLatency)
     } else {
       if (this._clientRTCOpen(client)) {
         packages.forEach((p) => {
-          client.dataChannel.send(p)
+          client.dataChannel!.send(p)
         })
       }
     }
   }
 
-  async broadcastRTC(message:any, clients = []) {
+  async broadcastRTC(message: any, clients: ClientType[] = []): Promise<void> {
     if (clients.length == 0) {
       clients = this.clients
     }
@@ -953,22 +989,22 @@ export default class TopazCubeServer {
         setTimeout(() => {
           if (client.dataChannel && client.dataChannel.readyState === 'open') {
             packages.forEach((p) => {
-              client.dataChannel.send(p)
+              client?.dataChannel?.send(p)
             })
           }
         }, this.simulateLatency)
       } else {
         if (client.dataChannel && client.dataChannel.readyState === 'open') {
           packages.forEach((p) => {
-            client.dataChannel.send(p)
+            client?.dataChannel?.send(p)
           })
         }
       }
     }
   }
 
-  _splitRTCMessage(data) {
-    let packages
+  _splitRTCMessage(data: Uint8Array): Uint8Array[] {
+    let packages: Uint8Array[]
     if (data.byteLength > 65535) {
       const now = Date.now()
       console.warn(`RTC: Message too large: ${data.byteLength} bytes`)
@@ -1011,12 +1047,12 @@ export default class TopazCubeServer {
   // properties (of the documents) that starts with __ are not saved to the database.
   // __properties are restored on hydration. (for example __physicsBody or __bigObject)
 
-  getUID() {
+  getUID(): number {
     this.documents['_server'].nextUID++
     return this.documents['_server'].nextUID
   }
 
-  async _initDB() {
+  async _initDB(): Promise<void> {
     await this._connectDB()
     await this._loadDocument('_server')
     if (!this.documents['_server']) {
@@ -1024,7 +1060,7 @@ export default class TopazCubeServer {
     }
   }
 
-  async _connectDB() {
+  async _connectDB(): Promise<void> {
     this.mongoClient = new MongoClient(this.MongoUrl)
     try {
       await this.mongoClient.connect()
@@ -1037,7 +1073,7 @@ export default class TopazCubeServer {
     }
   }
 
-  async _loadDocument(name) {
+  async _loadDocument(name: string): Promise<void> {
     console.log(`Loading document '${name}' from MongoDB`)
     if (this.DB) {
       try {
@@ -1045,7 +1081,7 @@ export default class TopazCubeServer {
           name: name,
         })
         if (doc) {
-          delete doc._id
+          delete (doc as any)._id
           this.documents[name] = doc
         }
       } catch (error) {
@@ -1056,7 +1092,7 @@ export default class TopazCubeServer {
     }
   }
 
-  async _saveDocument(name) {
+  async _saveDocument(name: string): Promise<void> {
     if (this.DB) {
       try {
         const doc = this.documents[name]
@@ -1076,7 +1112,7 @@ export default class TopazCubeServer {
     }
   }
 
-  async _saveAllDocuments() {
+  async _saveAllDocuments(): Promise<void> {
     if (!this.allowSave) {
       return
     }
@@ -1085,7 +1121,7 @@ export default class TopazCubeServer {
     }
   }
 
-  _initServerDocument() {
+  _initServerDocument(): void {
     this.documents['_server'] = {
       nextUID: 100,
     }
@@ -1093,7 +1129,7 @@ export default class TopazCubeServer {
 
   /*= EXIT ===================================================================*/
 
-  _exitSignal(signal) {
+  _exitSignal(signal: string): void {
     if (!this._exited) {
       console.log('\nEXIT: Caught interrupt signal ' + signal)
       this._exited = true
@@ -1101,11 +1137,11 @@ export default class TopazCubeServer {
       this.onBeforeExit()
       this.broadcast({ server: 'Going down' })
       this._saveAllDocuments()
-      this._wss.close()
+      this._wss!.close()
       setTimeout(() => process.exit(0), 1000)
     }
   }
 
   // To be redefined. Called BEFORE program exit, and saving all documents
-  onBeforeExit() {}
+  onBeforeExit(): void {}
 }
