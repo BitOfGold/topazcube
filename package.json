@@ -1,6 +1,6 @@
 {
   "name": "topazcube",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TopazCube is a real-time collaborative document editing, and multiplayer game library.",
   "author": "László Matuska @BitOfGold",
   "license": "Apache-2.0",

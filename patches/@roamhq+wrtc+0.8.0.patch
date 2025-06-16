@@ -1,0 +1,20 @@
+diff --git a/node_modules/@roamhq/wrtc/types/index.d.ts b/node_modules/@roamhq/wrtc/types/index.d.ts
+index 01a9f5f..f0d723a 100644
+--- a/node_modules/@roamhq/wrtc/types/index.d.ts
++++ b/node_modules/@roamhq/wrtc/types/index.d.ts
+@@ -1,3 +1,5 @@
++// @ts-nocheck
++
+ /* Copyright (c) 2023 The node-webrtc project authors. All rights reserved.
+  *
+  * Use of this source code is governed by a BSD-style license that can be found
+diff --git a/node_modules/@roamhq/wrtc/types/nonstandard.d.ts b/node_modules/@roamhq/wrtc/types/nonstandard.d.ts
+index 8b75896..3610a30 100644
+--- a/node_modules/@roamhq/wrtc/types/nonstandard.d.ts
++++ b/node_modules/@roamhq/wrtc/types/nonstandard.d.ts
+@@ -1,3 +1,5 @@
++// @ts-nocheck
++
+ /* Copyright (c) 2023 The node-webrtc project authors. All rights reserved.
+  *
+  * Use of this source code is governed by a BSD-style license that can be found

@@ -1,0 +1,1021 @@
+Statistical profiling result from isolate-0x7fb7cb100000-30688-v8.log, (7490 ticks, 46 unaccounted, 0 excluded).
+
+ [Shared libraries]:
+   ticks  total  nonlib   name
+     76    1.0%          /usr/lib/system/libsystem_c.dylib
+     63    0.8%          /usr/lib/system/libsystem_platform.dylib
+     54    0.7%          /usr/lib/system/libdyld.dylib
+     46    0.6%          /usr/lib/libc++.1.dylib
+     45    0.6%          /usr/lib/system/libsystem_malloc.dylib
+      7    0.1%          /usr/lib/system/libsystem_kernel.dylib
+      2    0.0%          /usr/lib/libc++abi.dylib
+      1    0.0%          /usr/lib/system/libsystem_pthread.dylib
+      1    0.0%          /usr/lib/libobjc.A.dylib
+
+ [JavaScript]:
+   ticks  total  nonlib   name
+    219    2.9%    3.0%  JS: *set file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:34:8
+    124    1.7%    1.7%  JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+     63    0.8%    0.9%  JS: *get file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:31:8
+     31    0.4%    0.4%  JS: *_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+     17    0.2%    0.2%  JS: ^y file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:19:11
+     14    0.2%    0.2%  JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      9    0.1%    0.1%  JS: ^Packr.writeRecord file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:685:3
+      6    0.1%    0.1%  JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      6    0.1%    0.1%  JS: *packArray file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:224:21
+      6    0.1%    0.1%  JS: *pack file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:241:16
+      3    0.0%    0.0%  JS: +set file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:34:8
+      2    0.0%    0.0%  JS: +pack file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:241:16
+      2    0.0%    0.0%  JS: +onCreate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:38:11
+      2    0.0%    0.0%  JS: +_onDocumentChange file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:428:20
+      1    0.0%    0.0%  JS: wasm-function[891]
+      1    0.0%    0.0%  JS: wasm-function[790]
+      1    0.0%    0.0%  JS: ^tryParseObjectDefineOrKeys node:internal/deps/cjs-module-lexer/lexer:331:37
+      1    0.0%    0.0%  JS: ^stat node:internal/modules/cjs/loader:249:14
+      1    0.0%    0.0%  JS: ^processPromiseRejections node:internal/process/promises:439:34
+      1    0.0%    0.0%  JS: ^processCallback node:zlib:487:25
+      1    0.0%    0.0%  JS: ^normalize node:path:1217:12
+      1    0.0%    0.0%  JS: ^_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      1    0.0%    0.0%  JS: ^Writable.write node:internal/streams/writable:502:36
+      1    0.0%    0.0%  JS: +resolve node:path:1175:10
+      1    0.0%    0.0%  JS: +packArray file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:224:21
+      1    0.0%    0.0%  JS: +onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+      1    0.0%    0.0%  JS: +get file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:31:8
+      1    0.0%    0.0%  JS: +_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+      1    0.0%    0.0%  JS: +_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      1    0.0%    0.0%  JS: +Packr.writeRecord file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:685:3
+      1    0.0%    0.0%  JS: *y file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:19:11
+      1    0.0%    0.0%  JS: *k file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:103:11
+      1    0.0%    0.0%  JS: *_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+
+ [C++]:
+   ticks  total  nonlib   name
+   5900   78.8%   82.0%  t node::SocketAddressBlockList::SelfSize() const
+    176    2.3%    2.4%  t __platform_memmove$VARIANT$Haswell
+     99    1.3%    1.4%  T _proc_set_dirty
+     95    1.3%    1.3%  t __pthread_bsdthread_init
+     92    1.2%    1.3%  T _task_restartable_ranges_synchronize
+     75    1.0%    1.0%  T ___pthread_init
+     26    0.3%    0.4%  t std::__1::ostreambuf_iterator<char, std::__1::char_traits<char>> std::__1::__pad_and_output[abi:nn180100]<char, std::__1::char_traits<char>>(std::__1::ostreambuf_iterator<char, std::__1::char_traits<char>>, char const*, char const*, char const*, std::__1::ios_base&, char)
+     21    0.3%    0.3%  t std::__1::basic_ostream<char, std::__1::char_traits<char>>& std::__1::__put_character_sequence[abi:nn180100]<char, std::__1::char_traits<char>>(std::__1::basic_ostream<char, std::__1::char_traits<char>>&, char const*, unsigned long)
+     13    0.2%    0.2%  T node::loader::ModuleWrap::New(v8::FunctionCallbackInfo<v8::Value> const&)
+     12    0.2%    0.2%  T _posix_spawnattr_getmacpolicyinfo_np
+     12    0.2%    0.2%  T _getentropy
+     11    0.1%    0.2%  t __pthread_main_thread_init
+      8    0.1%    0.1%  T _semaphore_create
+      8    0.1%    0.1%  T _mach_vm_allocate
+      8    0.1%    0.1%  T _mach_msg2_trap
+      8    0.1%    0.1%  T __pthread_exit_if_canceled
+      7    0.1%    0.1%  T _macx_swapoff
+      6    0.1%    0.1%  t __pthread_key_global_init
+      5    0.1%    0.1%  T _vm_copy
+      5    0.1%    0.1%  T _swtch_pri
+      5    0.1%    0.1%  T _proc_setpcontrol
+      4    0.1%    0.1%  t v8impl::(anonymous namespace)::FunctionCallbackWrapper::Invoke(v8::FunctionCallbackInfo<v8::Value> const&)
+      4    0.1%    0.1%  t __pthread_strtoul
+      4    0.1%    0.1%  T _fcntl$NOCANCEL
+      3    0.0%    0.0%  t _mach_msg_destroy_port
+      3    0.0%    0.0%  T _vm_allocate
+      1    0.0%    0.0%  t void std::__1::__tree_balance_after_insert[abi:nn180100]<std::__1::__tree_node_base<void*>*>(std::__1::__tree_node_base<void*>*, std::__1::__tree_node_base<void*>*)
+      1    0.0%    0.0%  t node::fs::Read(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  t node::contextify::CompileFunctionForCJSLoader(node::Environment*, v8::Local<v8::Context>, v8::Local<v8::String>, v8::Local<v8::String>, bool*, bool, v8::ScriptCompiler::CachedData*)
+      1    0.0%    0.0%  t node::Buffer::(anonymous namespace)::SlowCopy(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  t auto node::options_parser::OptionsParser<node::PerIsolateOptions>::Convert<node::options_parser::OptionsParser<node::EnvironmentOptions>::BaseOptionField, node::EnvironmentOptions>(std::__1::shared_ptr<node::options_parser::OptionsParser<node::EnvironmentOptions>::BaseOptionField>, node::EnvironmentOptions* (node::PerIsolateOptions::*)())::AdaptedField::LookupImpl(node::PerIsolateOptions*) const
+      1    0.0%    0.0%  t __pthread_rwlock_lock_wait
+      1    0.0%    0.0%  t __pthread_rwlock_lock_slow
+      1    0.0%    0.0%  t __platform_memmove$VARIANT$Base
+      1    0.0%    0.0%  T node::cares_wrap::ChannelWrap::New(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  T node::AsyncHooks::push_async_context(double, double, v8::Local<v8::Object>)
+      1    0.0%    0.0%  T _vm_region_recurse_64
+      1    0.0%    0.0%  T _pthread_key_init_np
+      1    0.0%    0.0%  T _pthread_key_create
+      1    0.0%    0.0%  T _mach_msg
+      1    0.0%    0.0%  T _chmod
+      1    0.0%    0.0%  T ___guarded_open_dprotected_np
+
+ [Summary]:
+   ticks  total  nonlib   name
+    523    7.0%    7.3%  JavaScript
+   6626   88.5%   92.1%  C++
+    292    3.9%    4.1%  GC
+    295    3.9%          Shared libraries
+     46    0.6%          Unaccounted
+
+ [C++ entry points]:
+   ticks    cpp   total   name
+   6053   93.6%   80.8%  t node::SocketAddressBlockList::SelfSize() const
+    144    2.2%    1.9%  t __platform_memmove$VARIANT$Haswell
+     77    1.2%    1.0%  t __pthread_bsdthread_init
+     59    0.9%    0.8%  T ___pthread_init
+     28    0.4%    0.4%  T _task_restartable_ranges_synchronize
+     20    0.3%    0.3%  t std::__1::ostreambuf_iterator<char, std::__1::char_traits<char>> std::__1::__pad_and_output[abi:nn180100]<char, std::__1::char_traits<char>>(std::__1::ostreambuf_iterator<char, std::__1::char_traits<char>>, char const*, char const*, char const*, std::__1::ios_base&, char)
+     17    0.3%    0.2%  T _proc_set_dirty
+     15    0.2%    0.2%  t std::__1::basic_ostream<char, std::__1::char_traits<char>>& std::__1::__put_character_sequence[abi:nn180100]<char, std::__1::char_traits<char>>(std::__1::basic_ostream<char, std::__1::char_traits<char>>&, char const*, unsigned long)
+      6    0.1%    0.1%  t __pthread_main_thread_init
+      6    0.1%    0.1%  T _macx_swapoff
+      5    0.1%    0.1%  T _swtch_pri
+      5    0.1%    0.1%  T _mach_msg2_trap
+      4    0.1%    0.1%  t __pthread_strtoul
+      4    0.1%    0.1%  t __pthread_key_global_init
+      4    0.1%    0.1%  T _mach_vm_allocate
+      3    0.0%    0.0%  t _mach_msg_destroy_port
+      3    0.0%    0.0%  T __pthread_exit_if_canceled
+      2    0.0%    0.0%  T _vm_allocate
+      1    0.0%    0.0%  t v8impl::(anonymous namespace)::FunctionCallbackWrapper::Invoke(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  t node::fs::Read(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  t node::contextify::CompileFunctionForCJSLoader(node::Environment*, v8::Local<v8::Context>, v8::Local<v8::String>, v8::Local<v8::String>, bool*, bool, v8::ScriptCompiler::CachedData*)
+      1    0.0%    0.0%  t node::Buffer::(anonymous namespace)::SlowCopy(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  t auto node::options_parser::OptionsParser<node::PerIsolateOptions>::Convert<node::options_parser::OptionsParser<node::EnvironmentOptions>::BaseOptionField, node::EnvironmentOptions>(std::__1::shared_ptr<node::options_parser::OptionsParser<node::EnvironmentOptions>::BaseOptionField>, node::EnvironmentOptions* (node::PerIsolateOptions::*)())::AdaptedField::LookupImpl(node::PerIsolateOptions*) const
+      1    0.0%    0.0%  t __pthread_rwlock_lock_wait
+      1    0.0%    0.0%  t __pthread_rwlock_lock_slow
+      1    0.0%    0.0%  t __platform_memmove$VARIANT$Base
+      1    0.0%    0.0%  T _vm_region_recurse_64
+      1    0.0%    0.0%  T _vm_copy
+      1    0.0%    0.0%  T _mach_msg
+      1    0.0%    0.0%  T _chmod
+
+ [Bottom up (heavy) profile]:
+  Note: percentage shows a share of a particular caller in the total
+  amount of its parent calls.
+  Callers occupying less than 1.0% are not shown.
+
+   ticks parent  name
+   5900   78.8%  t node::SocketAddressBlockList::SelfSize() const
+   4035   68.4%    t node::SocketAddressBlockList::SelfSize() const
+   1540   38.2%      JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+   1322   85.8%        JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+   1184   89.6%          JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+   1184  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+    138   10.4%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+    138  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+    218   14.2%        JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+    218  100.0%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+    161   73.9%            JS: ^listOnTimeout node:internal/timers:548:25
+   1022   25.3%      t node::SocketAddressBlockList::SelfSize() const
+    533   52.2%        JS: *set file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:34:8
+    533  100.0%          t node::SocketAddressBlockList::SelfSize() const
+    531   99.6%            JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+    418   40.9%        JS: *get file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:31:8
+    418  100.0%          t node::SocketAddressBlockList::SelfSize() const
+    257   61.5%            JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+    133   31.8%            JS: *_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+     18    4.3%            JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     34    3.3%        JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     20   58.8%          JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     18   90.0%            JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      2   10.0%            JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+     14   41.2%          JS: ^_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     14  100.0%            JS: ~_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+    463   11.5%      JS: *_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+    383   82.7%        JS: *_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+    360   94.0%          JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+    310   86.1%            JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     50   13.9%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     23    6.0%          JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     23  100.0%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     51   11.0%        JS: +_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+     33   64.7%          JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     33  100.0%            JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     18   35.3%          JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     18  100.0%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     29    6.3%        JS: ^_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+     19   65.5%          JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     19  100.0%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     10   34.5%          JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     10  100.0%            JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+    433   10.7%      JS: *set file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:34:8
+    433  100.0%        t node::SocketAddressBlockList::SelfSize() const
+    431   99.5%          JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+    365   84.7%            JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     66   15.3%            JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+    151    3.7%      JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+    120   79.5%        JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     68   56.7%          JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     34   50.0%            JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+     34   50.0%            JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     41   34.2%          JS: ^_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     41  100.0%            JS: ~_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     11    9.2%          JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+     11  100.0%            t node::SocketAddressBlockList::SelfSize() const
+     31   20.5%        JS: ^_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     31  100.0%          JS: ~_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     31  100.0%            JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+    105    2.6%      JS: *get file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:31:8
+     51   48.6%        JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+     41   80.4%          JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     37   90.2%            JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      4    9.8%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     10   19.6%          JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     10  100.0%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     21   20.0%        JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     17   81.0%          JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     16   94.1%            JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      1    5.9%            JS: ^_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      4   19.0%          JS: ^_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      4  100.0%            JS: ~_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     20   19.0%        t node::SocketAddressBlockList::SelfSize() const
+      9   45.0%          JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+      9  100.0%            JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      8   40.0%          JS: *_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+      5   62.5%            JS: *_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      2   25.0%            JS: +_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      1   12.5%            JS: ^_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      1    5.0%          JS: ~scaleAndAdd /Users/laszlomatuska/www/topazcube/test/game/server/node_modules/gl-matrix/cjs/vec3.js:323:21
+      1  100.0%            JS: ^onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+      1    5.0%          JS: ^_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+      1  100.0%            JS: ^_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      1    5.0%          JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      1  100.0%            JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     12   11.4%        JS: *_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+      9   75.0%          JS: *_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      9  100.0%            JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      3   25.0%          JS: +_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      3  100.0%            JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     77    1.9%      JS: ^onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+     67   87.0%        JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     59   88.1%          JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     59  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+      8   11.9%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      8  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+     10   13.0%        JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     10  100.0%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      8   80.0%            JS: ^listOnTimeout node:internal/timers:548:25
+    750   12.7%    JS: *set file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:34:8
+    750  100.0%      t node::SocketAddressBlockList::SelfSize() const
+    743   99.1%        JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+    646   86.9%          JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+    572   88.5%            JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     74   11.5%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     97   13.1%          JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     97  100.0%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+    221    3.7%    JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+    193   87.3%      JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+    174   90.2%        JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+    174  100.0%          JS: ^listOnTimeout node:internal/timers:548:25
+    174  100.0%            JS: ^processTimers node:internal/timers:528:25
+     19    9.8%        JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     19  100.0%          JS: ^listOnTimeout node:internal/timers:548:25
+     19  100.0%            JS: ^processTimers node:internal/timers:528:25
+     28   12.7%      JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     28  100.0%        JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     22   78.6%          JS: ^listOnTimeout node:internal/timers:548:25
+     22  100.0%            JS: ^processTimers node:internal/timers:528:25
+    139    2.4%    JS: *get file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:31:8
+    103   74.1%      t node::SocketAddressBlockList::SelfSize() const
+     72   69.9%        JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+     57   79.2%          JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     49   86.0%            JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      8   14.0%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     15   20.8%          JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     15  100.0%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     24   23.3%        JS: *_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+     14   58.3%          JS: *_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+     14  100.0%            JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      6   25.0%          JS: +_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      6  100.0%            JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      4   16.7%          JS: ^_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      3   75.0%            JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      1   25.0%            JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      2    1.9%        JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      2  100.0%          JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      2  100.0%            JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     26   18.7%      JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+     25   96.2%        JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     22   88.0%          JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     22  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+      3   12.0%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      3  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+      1    3.8%        JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      1  100.0%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      1  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+      6    4.3%      JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      3   50.0%        JS: ^_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      3  100.0%          JS: ~_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      3  100.0%            JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+      3   50.0%        JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      2   66.7%          JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      1   50.0%            JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+      1   50.0%            JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      1   33.3%          JS: ^_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      1  100.0%            JS: ~_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      3    2.2%      JS: *_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+      3  100.0%        JS: *_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      3  100.0%          JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      3  100.0%            JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     99    1.7%    JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     86   86.9%      JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     86  100.0%        JS: ^listOnTimeout node:internal/timers:548:25
+     86  100.0%          JS: ^processTimers node:internal/timers:528:25
+     13   13.1%      JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     13  100.0%        JS: ^listOnTimeout node:internal/timers:548:25
+     13  100.0%          JS: ^processTimers node:internal/timers:528:25
+     79    1.3%    JS: *_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+     72   91.1%      JS: *_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+     70   97.2%        JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     66   94.3%          JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     66  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+      4    5.7%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      4  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+      2    2.8%        JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      2  100.0%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      2  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+      4    5.1%      JS: ^_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      3   75.0%        JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      3  100.0%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      2   66.7%            JS: ^listOnTimeout node:internal/timers:548:25
+      1   25.0%        JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      1  100.0%          JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      1  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+      3    3.8%      JS: +_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      3  100.0%        JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      3  100.0%          JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      3  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+     72    1.2%    JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     51   70.8%      JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     35   68.6%        JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     23   65.7%          JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+     23  100.0%            t node::SocketAddressBlockList::SelfSize() const
+     12   34.3%          JS: *_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     12  100.0%            JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+      9   17.6%        JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+      9  100.0%          t node::SocketAddressBlockList::SelfSize() const
+      9  100.0%            JS: ^processTicksAndRejections node:internal/process/task_queues:72:35
+      7   13.7%        JS: ^_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      7  100.0%          JS: ~_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+      7  100.0%            JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+     21   29.2%      JS: ^_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     21  100.0%        JS: ~_ file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:54:11
+     21  100.0%          JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+     21  100.0%            t node::SocketAddressBlockList::SelfSize() const
+     61    1.0%    JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+     48   78.7%      JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+     24   50.0%        JS: ~<anonymous> node:internal/modules/esm/translators:549:46
+     24  100.0%          JS: ~#translate node:internal/modules/esm/loader:526:13
+     24  100.0%            JS: ~loadAndTranslate node:internal/modules/esm/loader:579:25
+      2    4.2%        JS: ~<anonymous> node:tty:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      2  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      2    4.2%        JS: ~<anonymous> node:internal/streams/pipeline:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      2  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      2    4.2%        JS: ~<anonymous> node:internal/streams/duplex:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      2  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      2    4.2%        JS: ~<anonymous> node:internal/readline/interface:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      2  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      2    4.2%        JS: ~<anonymous> node:internal/crypto/hkdf:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      2  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      2    4.2%        JS: ~<anonymous> node:crypto:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      2  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    2.1%        JS: ~newResolveCache node:internal/modules/esm/loader:75:25
+      1  100.0%          JS: ~ModuleLoader node:internal/modules/esm/loader:148:3
+      1  100.0%            JS: ~ModuleLoader node:internal/modules/esm/loader:184:14
+      1    2.1%        JS: ~initCJSParseSync node:internal/modules/esm/translators:79:26
+      1  100.0%          JS: ~commonjsStrategy node:internal/modules/esm/translators:305:54
+      1  100.0%            JS: ~#translate node:internal/modules/esm/loader:526:13
+      1    2.1%        JS: ~getSource node:internal/modules/esm/load:32:25
+      1  100.0%          JS: ~defaultLoad node:internal/modules/esm/load:83:27
+      1  100.0%            JS: ~load node:internal/modules/esm/loader:790:13
+      1    2.1%        JS: ~defaultResolve node:internal/modules/esm/loader:770:17
+      1  100.0%          JS: ~#cachedDefaultResolve node:internal/modules/esm/loader:698:24
+      1  100.0%            JS: ~resolve node:internal/modules/esm/loader:678:10
+      1    2.1%        JS: ~<anonymous> node:tls:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    2.1%        JS: ~<anonymous> node:stream:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    2.1%        JS: ~<anonymous> node:internal/tls/secure-context:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    2.1%        JS: ~<anonymous> node:internal/streams/compose:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    2.1%        JS: ~<anonymous> node:internal/perf/observe:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    2.1%        JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    2.1%        JS: ~<anonymous> node:internal/fs/promises:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    2.1%        JS: ~<anonymous> node:_tls_wrap:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+     10   16.4%      JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      2   20.0%        JS: ~<anonymous> node:https:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      2  100.0%            JS: ~builtinStrategy node:internal/modules/esm/translators:412:52
+      2   20.0%        JS: ~<anonymous> node:child_process:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      2  100.0%            JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      1   10.0%        t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%          JS: ~makeSocket /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/cmap/connect.js:243:26
+      1  100.0%            JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/sdam/monitor.js:255:6
+      1   10.0%        JS: ~<anonymous> node:perf_hooks:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      1   10.0%        JS: ~<anonymous> node:module:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ~builtinStrategy node:internal/modules/esm/translators:412:52
+      1   10.0%        JS: ~<anonymous> node:internal/perf/usertiming:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      1   10.0%        JS: ~<anonymous> node:internal/child_process:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      1   10.0%        JS: ~<anonymous> node:_http_server:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      2    3.3%      JS: ^compileForPublicLoader node:internal/bootstrap/realm:336:25
+      2  100.0%        JS: ^loadBuiltinModule node:internal/modules/helpers:101:27
+      2  100.0%          JS: ^loadBuiltinWithHooks node:internal/modules/cjs/loader:1164:30
+      2  100.0%            JS: ^<anonymous> node:internal/modules/cjs/loader:1192:24
+      1    1.6%      JS: ~builtinStrategy node:internal/modules/esm/translators:412:52
+      1  100.0%        JS: ~#translate node:internal/modules/esm/loader:526:13
+      1  100.0%          JS: ~loadAndTranslate node:internal/modules/esm/loader:579:25
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+
+    219    2.9%  JS: *set file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:34:8
+    219  100.0%    t node::SocketAddressBlockList::SelfSize() const
+    218   99.5%      JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+    182   83.5%        JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+    159   87.4%          JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+    159  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+     23   12.6%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     23  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+     36   16.5%        JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     36  100.0%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     19   52.8%            JS: ^listOnTimeout node:internal/timers:548:25
+
+    176    2.3%  t __platform_memmove$VARIANT$Haswell
+    144   81.8%    JS: *set file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:34:8
+    144  100.0%      t node::SocketAddressBlockList::SelfSize() const
+    144  100.0%        JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+    117   81.3%          JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+    104   88.9%            JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     13   11.1%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     27   18.8%          JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     27  100.0%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     32   18.2%    t node::SocketAddressBlockList::SelfSize() const
+     32  100.0%      t node::SocketAddressBlockList::SelfSize() const
+     32  100.0%        JS: *set file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:34:8
+     32  100.0%          t node::SocketAddressBlockList::SelfSize() const
+     31   96.9%            JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+      1    3.1%            JS: +onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+
+    124    1.7%  JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+    109   87.9%    JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     98   89.9%      JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     98  100.0%        JS: ^listOnTimeout node:internal/timers:548:25
+     98  100.0%          JS: ^processTimers node:internal/timers:528:25
+     11   10.1%      JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     11  100.0%        JS: ^listOnTimeout node:internal/timers:548:25
+     11  100.0%          JS: ^processTimers node:internal/timers:528:25
+     15   12.1%    JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+     15  100.0%      JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+     10   66.7%        JS: ^listOnTimeout node:internal/timers:548:25
+     10  100.0%          JS: ^processTimers node:internal/timers:528:25
+
+     99    1.3%  T _proc_set_dirty
+     63   63.6%    t node::SocketAddressBlockList::SelfSize() const
+     20   31.7%      t node::SocketAddressBlockList::SelfSize() const
+     14   70.0%        JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+     14  100.0%          t node::SocketAddressBlockList::SelfSize() const
+     14  100.0%            JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      3   15.0%        JS: ^Packr.writeRecord file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:685:3
+      3  100.0%          JS: *pack file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:241:16
+      3  100.0%            JS: ^Packr.writeRecord file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:685:3
+      1    5.0%        JS: ~checkForNonGenuineHosts /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/mongo_client.js:92:28
+      1  100.0%          JS: ~MongoClient /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/mongo_client.js:49:16
+      1  100.0%            JS: ~_connectDB file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:547:19
+      1    5.0%        JS: ^y file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:19:11
+      1  100.0%          JS: ^y file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:19:11
+      1  100.0%            JS: ~y file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:19:11
+      1    5.0%        JS: ^parseSource node:internal/deps/cjs-module-lexer/lexer:85:22
+      1  100.0%          JS: ~parseCJS node:internal/deps/cjs-module-lexer/lexer:40:19
+      1  100.0%            JS: ~cjsPreparseModuleExports node:internal/modules/esm/translators:354:34
+     11   17.5%      JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      7   63.6%        JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      5   71.4%          JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      3   60.0%            JS: ~S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      1   20.0%            JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+      1   20.0%            JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      2   28.6%          JS: ~S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      2  100.0%            JS: ~_sendFullState file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:362:23
+      4   36.4%        t node::SocketAddressBlockList::SelfSize() const
+      4  100.0%          JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      4  100.0%            JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      5    7.9%      JS: ^y file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:19:11
+      5  100.0%        JS: ^y file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:19:11
+      5  100.0%          JS: ^y file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:19:11
+      3   60.0%            JS: ^y file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:19:11
+      2   40.0%            JS: ~y file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:19:11
+      3    4.8%      JS: *set file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:34:8
+      3  100.0%        t node::SocketAddressBlockList::SelfSize() const
+      2   66.7%          JS: *onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+      1   50.0%            JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      1   50.0%            JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      1   33.3%          JS: +rotateY /Users/laszlomatuska/www/topazcube/test/game/server/node_modules/gl-matrix/cjs/quat.js:203:17
+      1  100.0%            JS: ^onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+      2    3.2%      JS: ~parseOptions /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/connection_string.js:191:22
+      2  100.0%        JS: ~MongoClient /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/mongo_client.js:49:16
+      2  100.0%          JS: ~_connectDB file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:547:19
+      2  100.0%            JS: ~_initDB file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:544:16
+      2    3.2%      JS: +decode node:internal/deps/cjs-module-lexer/lexer:55:17
+      1   50.0%        JS: ^tryParseRequire node:internal/deps/cjs-module-lexer/lexer:931:26
+      1  100.0%          JS: ^parseSource node:internal/deps/cjs-module-lexer/lexer:85:22
+      1  100.0%            JS: ~parseCJS node:internal/deps/cjs-module-lexer/lexer:40:19
+      1   50.0%        JS: ^tryParseObjectDefineOrKeys node:internal/deps/cjs-module-lexer/lexer:331:37
+      1  100.0%          JS: +parseSource node:internal/deps/cjs-module-lexer/lexer:85:22
+      1  100.0%            JS: ~parseCJS node:internal/deps/cjs-module-lexer/lexer:40:19
+      1    1.6%      Script: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/unpack.js:1:1
+      1  100.0%        t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%          JS: ~run node:internal/modules/esm/module_job:265:12
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      1    1.6%      JS: ~toObject /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/cmap/wire_protocol/responses.js:142:13
+      1  100.0%        JS: ~sendCommand /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/cmap/connection.js:261:23
+      1  100.0%          t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%            JS: ^processTicksAndRejections node:internal/process/task_queues:72:35
+      1    1.6%      JS: ~takeObject node:internal/deps/amaro/dist/index:86:24
+      1  100.0%        JS: ~module2.exports.__wbindgen_object_drop_ref node:internal/deps/amaro/dist/index:450:58
+      1  100.0%          t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%            JS: wasm-function[5810]
+      1    1.6%      JS: ~resolve /Users/laszlomatuska/www/topazcube/node_modules/node-gyp-build-optional-packages/node-gyp-build.js:87:20
+      1  100.0%        JS: ~load.resolve.load.path /Users/laszlomatuska/www/topazcube/node_modules/node-gyp-build-optional-packages/node-gyp-build.js:31:37
+      1  100.0%          JS: ~load /Users/laszlomatuska/www/topazcube/node_modules/node-gyp-build-optional-packages/node-gyp-build.js:27:15
+      1  100.0%            JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/node_modules/msgpackr-extract/index.js:1:1
+      1    1.6%      JS: ~parseAuthority /Users/laszlomatuska/www/topazcube/node_modules/whatwg-url/lib/url-state-machine.js:751:71
+      1  100.0%        JS: ~URLStateMachine /Users/laszlomatuska/www/topazcube/node_modules/whatwg-url/lib/url-state-machine.js:501:25
+      1  100.0%          JS: ~module.exports.basicURLParse /Users/laszlomatuska/www/topazcube/node_modules/whatwg-url/lib/url-state-machine.js:1236:41
+      1  100.0%            JS: ~URLImpl /Users/laszlomatuska/www/topazcube/node_modules/whatwg-url/lib/URL-impl.js:9:14
+      1    1.6%      JS: ~onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+      1  100.0%        JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      1  100.0%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      1    1.6%      JS: ~makeWrapper /Users/laszlomatuska/www/topazcube/node_modules/whatwg-url/lib/URLSearchParams.js:37:21
+      1  100.0%        JS: ~exports.create /Users/laszlomatuska/www/topazcube/node_modules/whatwg-url/lib/URLSearchParams.js:50:18
+      1  100.0%          JS: ~exports.createImpl /Users/laszlomatuska/www/topazcube/node_modules/whatwg-url/lib/URLSearchParams.js:55:22
+      1  100.0%            JS: ~URLImpl /Users/laszlomatuska/www/topazcube/node_modules/whatwg-url/lib/URL-impl.js:9:14
+      1    1.6%      JS: ~finalizeResolution node:internal/modules/esm/resolve:228:28
+      1  100.0%        JS: ~moduleResolve node:internal/modules/esm/resolve:827:23
+      1  100.0%          JS: ~defaultResolve node:internal/modules/esm/resolve:939:24
+      1  100.0%            JS: ~defaultResolve node:internal/modules/esm/loader:770:17
+      1    1.6%      JS: ~equals /Users/laszlomatuska/www/topazcube/node_modules/bson/lib/bson.cjs:1427:11
+      1  100.0%        JS: ~eq /Users/laszlomatuska/www/topazcube/node_modules/bson/lib/bson.cjs:1434:7
+      1  100.0%          JS: ~negate /Users/laszlomatuska/www/topazcube/node_modules/bson/lib/bson.cjs:1576:11
+      1  100.0%            JS: ~neg /Users/laszlomatuska/www/topazcube/node_modules/bson/lib/bson.cjs:1581:8
+      1    1.6%      JS: ~dispatch /Users/laszlomatuska/www/topazcube/node_modules/ws/lib/sender.js:498:11
+      1  100.0%        JS: ^send /Users/laszlomatuska/www/topazcube/node_modules/ws/lib/sender.js:346:7
+      1  100.0%          JS: ^send /Users/laszlomatuska/www/topazcube/node_modules/ws/lib/websocket.js:448:7
+      1  100.0%            JS: ^send file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:341:13
+      1    1.6%      JS: ~completeUpgrade /Users/laszlomatuska/www/topazcube/node_modules/ws/lib/websocket-server.js:360:18
+      1  100.0%        JS: ~handleUpgrade /Users/laszlomatuska/www/topazcube/node_modules/ws/lib/websocket-server.js:234:16
+      1  100.0%          JS: ~upgrade /Users/laszlomatuska/www/topazcube/node_modules/ws/lib/websocket-server.js:118:18
+      1  100.0%            JS: ^emit node:events:454:44
+      1    1.6%      JS: ~Readable.read node:internal/streams/readable:645:35
+      1  100.0%        JS: ~resume_ node:internal/streams/readable:1252:17
+      1  100.0%          JS: ^processTicksAndRejections node:internal/process/task_queues:72:35
+      1    1.6%      JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    1.6%      JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/connection_string.js:1:1
+      1  100.0%        JS: ^<anonymous> node:internal/modules/cjs/loader:1684:37
+      1  100.0%          JS: ^<anonymous> node:internal/modules/cjs/loader:1880:37
+      1  100.0%            JS: ^<anonymous> node:internal/modules/cjs/loader:1454:33
+      1    1.6%      JS: wasm-function[50]
+      1  100.0%        JS: wasm-function[421]
+      1  100.0%          JS: wasm-function[2465]
+      1  100.0%            JS: wasm-function[49]
+      1    1.6%      JS: wasm-function[4868]
+      1  100.0%        JS: wasm-function[116]
+      1  100.0%          JS: wasm-function[785]
+      1  100.0%            JS: wasm-function[45]
+      1    1.6%      JS: wasm-function[227]
+      1  100.0%        JS: wasm-function[6214]
+      1  100.0%          JS: wasm-function[50]
+      1  100.0%            JS: wasm-function[421]
+      1    1.6%      JS: wasm-function[2072]
+      1  100.0%        JS: wasm-function[78]
+      1  100.0%          JS: wasm-function[3559]
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      1    1.6%      JS: ^onUpdate file:///Users/laszlomatuska/www/topazcube/test/game/server/gameserver.ts:70:11
+      1  100.0%        JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      1  100.0%          JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      1  100.0%            JS: ^listOnTimeout node:internal/timers:548:25
+      1    1.6%      JS: *pack file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:241:16
+      1  100.0%        JS: *packArray file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:224:21
+      1  100.0%          JS: *pack file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:241:16
+      1  100.0%            JS: ^Packr.writeRecord file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:685:3
+      8    8.1%    JS: ^wrapSafe node:internal/modules/cjs/loader:1624:18
+      8  100.0%      JS: ^<anonymous> node:internal/modules/cjs/loader:1684:37
+      8  100.0%        JS: ^<anonymous> node:internal/modules/cjs/loader:1880:37
+      8  100.0%          JS: ^<anonymous> node:internal/modules/cjs/loader:1454:33
+      8  100.0%            JS: ^<anonymous> node:internal/modules/cjs/loader:1192:24
+      8    8.1%    JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      6   75.0%      JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      4   66.7%        JS: ~<anonymous> node:internal/modules/esm/translators:549:46
+      4  100.0%          JS: ~#translate node:internal/modules/esm/loader:526:13
+      4  100.0%            JS: ~loadAndTranslate node:internal/modules/esm/loader:579:25
+      1   16.7%        JS: ~<anonymous> node:tty:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1   16.7%        JS: ~<anonymous> node:stream:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      2   25.0%      JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      1   50.0%        t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%          JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/node_modules/bson/lib/bson.cjs:318:25
+      1  100.0%            JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/node_modules/bson/lib/bson.cjs:1:1
+      1   50.0%        JS: ~<anonymous> node:internal/perf/performance:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      1    1.0%    JS: ^detectModuleFormat node:internal/modules/esm/get_format:36:28
+      1  100.0%      JS: ^getFileProtocolModuleFormat node:internal/modules/esm/get_format:111:37
+      1  100.0%        JS: ~defaultGetFormat node:internal/modules/esm/get_format:204:26
+      1  100.0%          JS: ^defaultLoad node:internal/modules/esm/load:83:27
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+
+     95    1.3%  t __pthread_bsdthread_init
+     44   46.3%    JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+     41   93.2%      JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+     31   75.6%        JS: ~<anonymous> node:internal/modules/esm/translators:549:46
+     31  100.0%          JS: ~#translate node:internal/modules/esm/loader:526:13
+     31  100.0%            JS: ~loadAndTranslate node:internal/modules/esm/loader:579:25
+      2    4.9%        JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    2.4%        JS: ~initCJSParseSync node:internal/modules/esm/translators:79:26
+      1  100.0%          JS: ~commonjsStrategy node:internal/modules/esm/translators:305:54
+      1  100.0%            JS: ~#translate node:internal/modules/esm/loader:526:13
+      1    2.4%        JS: ~getTranslators node:internal/modules/esm/loader:93:24
+      1  100.0%          JS: ~ModuleLoader node:internal/modules/esm/loader:148:3
+      1  100.0%            JS: ~ModuleLoader node:internal/modules/esm/loader:184:14
+      1    2.4%        JS: ~<anonymous> node:tty:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    2.4%        JS: ~<anonymous> node:stream:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    2.4%        JS: ~<anonymous> node:internal/streams/operators:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    2.4%        JS: ~<anonymous> node:internal/streams/duplex:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    2.4%        JS: ~<anonymous> node:https:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ~builtinStrategy node:internal/modules/esm/translators:412:52
+      1    2.4%        JS: ~<anonymous> node:crypto:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      3    6.8%      JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      2   66.7%        JS: ~<anonymous> node:_http_server:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      2  100.0%            JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      1   33.3%        JS: ~<anonymous> node:child_process:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+     30   31.6%    JS: ^wrapSafe node:internal/modules/cjs/loader:1624:18
+     29   96.7%      JS: ^<anonymous> node:internal/modules/cjs/loader:1684:37
+     29  100.0%        JS: ^<anonymous> node:internal/modules/cjs/loader:1880:37
+     29  100.0%          JS: ^<anonymous> node:internal/modules/cjs/loader:1454:33
+     29  100.0%            JS: ^<anonymous> node:internal/modules/cjs/loader:1192:24
+      1    3.3%      JS: ^<anonymous> node:internal/modules/cjs/loader:1192:24
+      1  100.0%        JS: ^traceSync node:diagnostics_channel:320:12
+      1  100.0%          JS: ^wrapModuleLoad node:internal/modules/cjs/loader:228:24
+      1  100.0%            JS: ^<anonymous> node:internal/modules/cjs/loader:1483:36
+     16   16.8%    t node::SocketAddressBlockList::SelfSize() const
+      4   25.0%      JS: ~finalizeResolution node:internal/modules/esm/resolve:228:28
+      4  100.0%        JS: ~moduleResolve node:internal/modules/esm/resolve:827:23
+      4  100.0%          JS: ~defaultResolve node:internal/modules/esm/resolve:939:24
+      4  100.0%            JS: ~defaultResolve node:internal/modules/esm/loader:770:17
+      2   12.5%      t node::SocketAddressBlockList::SelfSize() const
+      1   50.0%        JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      1  100.0%          t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%            JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      1   50.0%        JS: ^Packr.writeRecord file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:685:3
+      1  100.0%          JS: *pack file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:241:16
+      1  100.0%            JS: ^Packr.writeRecord file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:685:3
+      2   12.5%      JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      2  100.0%        JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      1    6.3%      JS: ~upgrade /Users/laszlomatuska/www/topazcube/node_modules/ws/lib/websocket-server.js:118:18
+      1  100.0%        JS: ^emit node:events:454:44
+      1  100.0%          JS: ~onParserExecuteCommon node:_http_server:918:31
+      1  100.0%            JS: ~onParserExecute node:_http_server:845:25
+      1    6.3%      JS: ~throwIfInvalidParentURL node:internal/modules/esm/resolve:922:33
+      1  100.0%        JS: ~defaultResolve node:internal/modules/esm/resolve:939:24
+      1  100.0%          JS: ~defaultResolve node:internal/modules/esm/loader:770:17
+      1  100.0%            JS: ~#cachedDefaultResolve node:internal/modules/esm/loader:698:24
+      1    6.3%      JS: ~set node:internal/streams/writable:215:8
+      1  100.0%        t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%          JS: ~undestroy node:internal/streams/destroy:173:19
+      1  100.0%            JS: ~initSocketHandle node:net:323:26
+      1    6.3%      JS: ~read file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/unpack.js:247:21
+      1  100.0%        JS: ~readObject file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/unpack.js:508:21
+      1  100.0%          JS: ~recordDefinition file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/unpack.js:977:26
+      1  100.0%            JS: ~read file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/unpack.js:247:21
+      1    6.3%      JS: ~checkAborted node:internal/fs/promises:467:22
+      1  100.0%        JS: ~readFileHandle node:internal/fs/promises:507:30
+      1  100.0%          JS: ~readFile node:internal/fs/promises:1229:24
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      1    6.3%      JS: ~afterWriteTick node:internal/streams/writable:691:24
+      1  100.0%        JS: ^processTicksAndRejections node:internal/process/task_queues:72:35
+      1    6.3%      JS: ~Socket._write node:net:982:35
+      1  100.0%        JS: ^writeOrBuffer node:internal/streams/writable:546:23
+      1  100.0%          JS: ^_write node:internal/streams/writable:451:16
+      1  100.0%            JS: ^Writable.write node:internal/streams/writable:502:36
+      1    6.3%      JS: ~FileHandle node:internal/fs/promises:243:3
+      1  100.0%        JS: ~FileHandle node:internal/fs/promises:162:14
+      1  100.0%          JS: ~open node:internal/fs/promises:630:20
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      3    3.2%    JS: ^wrapModuleLoad node:internal/modules/cjs/loader:228:24
+      1   33.3%      JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/test/game/server/node_modules/gl-matrix/cjs/quat.js:1:1
+      1  100.0%        JS: ^wrapModuleLoad node:internal/modules/cjs/loader:228:24
+      1  100.0%          JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/test/game/server/node_modules/gl-matrix/cjs/index.js:1:1
+      1  100.0%            JS: ~cjsLoader node:internal/modules/esm/translators:313:38
+      1   33.3%      JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/test/game/server/node_modules/gl-matrix/cjs/index.js:1:1
+      1  100.0%        JS: ~cjsLoader node:internal/modules/esm/translators:313:38
+      1  100.0%          JS: ~<anonymous> node:internal/modules/esm/translators:203:63
+      1  100.0%            JS: ~run node:internal/modules/esm/module_job:265:12
+      1   33.3%      JS: ^<anonymous> node:internal/modules/cjs/loader:1483:36
+      1  100.0%        JS: ^require node:internal/modules/helpers:134:19
+      1  100.0%          JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/test/game/server/node_modules/gl-matrix/cjs/quat.js:1:1
+      1  100.0%            JS: ^wrapModuleLoad node:internal/modules/cjs/loader:228:24
+
+     92    1.2%  T _task_restartable_ranges_synchronize
+     10   10.9%    JS: ^send /Users/laszlomatuska/www/topazcube/node_modules/@roamhq/wrtc/lib/index.js:44:46
+     10  100.0%      JS: ^broadcastRTC file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:529:21
+     10  100.0%        t node::SocketAddressBlockList::SelfSize() const
+      9   90.0%          JS: +processTicksAndRejections node:internal/process/task_queues:72:35
+      1   10.0%          JS: ^processTicksAndRejections node:internal/process/task_queues:72:35
+      5    5.4%    JS: ~setLocalDescription /Users/laszlomatuska/www/topazcube/node_modules/@roamhq/wrtc/lib/peerconnection.js:289:79
+      5  100.0%      JS: ~_processOffer file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:443:22
+      5  100.0%        t node::SocketAddressBlockList::SelfSize() const
+      4    4.3%    JS: ~setRemoteDescription /Users/laszlomatuska/www/topazcube/node_modules/@roamhq/wrtc/lib/peerconnection.js:297:81
+      4  100.0%      JS: ~_processOffer file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:443:22
+      2   50.0%        JS: ~_onMessage file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:296:19
+      2  100.0%          JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:287:25
+      2  100.0%            JS: ^emit node:events:454:44
+      2   50.0%        JS: ^_onMessage file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:296:19
+      2  100.0%          JS: ^<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:287:25
+      2  100.0%            JS: ^emit node:events:454:44
+      3    3.3%    JS: ~send /Users/laszlomatuska/www/topazcube/node_modules/@roamhq/wrtc/lib/index.js:44:46
+      1   33.3%      JS: ~sendRTC file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:523:16
+      1  100.0%        t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%          JS: ^processTicksAndRejections node:internal/process/task_queues:72:35
+      1   33.3%      JS: ~broadcastRTC file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:529:21
+      1  100.0%        t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%          JS: ^processTicksAndRejections node:internal/process/task_queues:72:35
+      1   33.3%      JS: ^broadcastRTC file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:529:21
+      1  100.0%        t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%          JS: ^processTicksAndRejections node:internal/process/task_queues:72:35
+      2    2.2%    JS: ~getConnectionState /Users/laszlomatuska/www/topazcube/node_modules/@roamhq/wrtc/lib/peerconnection.js:95:39
+      1   50.0%      JS: ~s.onconnectionstatechange file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:458:36
+      1  100.0%        JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/node_modules/@roamhq/wrtc/lib/eventtarget.js:33:23
+      1  100.0%          t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%            JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/node_modules/@roamhq/wrtc/lib/eventtarget.js:25:20
+      1   50.0%      JS: ~onicegatheringstatechange /Users/laszlomatuska/www/topazcube/node_modules/@roamhq/wrtc/lib/peerconnection.js:61:68
+      2    2.2%    JS: ^broadcastRTC file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:529:21
+      2  100.0%      t node::SocketAddressBlockList::SelfSize() const
+      2  100.0%        JS: +processTicksAndRejections node:internal/process/task_queues:72:35
+      1    1.1%    JS: ~createDataChannel /Users/laszlomatuska/www/topazcube/node_modules/@roamhq/wrtc/lib/peerconnection.js:235:75
+      1  100.0%      JS: ~_processOffer file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:443:22
+      1  100.0%        t node::SocketAddressBlockList::SelfSize() const
+      1    1.1%    JS: ~_clientRTCOpen file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:520:17
+      1  100.0%      JS: ~sendRTC file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:523:16
+      1  100.0%        t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%          JS: ^processTicksAndRejections node:internal/process/task_queues:72:35
+
+     76    1.0%  /usr/lib/system/libsystem_c.dylib
+     32   42.1%    JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+     29   90.6%      JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+     22   75.9%        JS: ~<anonymous> node:internal/modules/esm/translators:549:46
+     22  100.0%          JS: ~#translate node:internal/modules/esm/loader:526:13
+     22  100.0%            JS: ~loadAndTranslate node:internal/modules/esm/loader:579:25
+      1    3.4%        JS: ~<anonymous> node:net:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    3.4%        JS: ~<anonymous> node:internal/streams/readable:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    3.4%        JS: ~<anonymous> node:internal/streams/operators:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    3.4%        JS: ~<anonymous> node:internal/streams/duplex:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    3.4%        JS: ~<anonymous> node:internal/modules/esm/resolve:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    3.4%        JS: ~<anonymous> node:internal/data_url:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    3.4%        JS: ~<anonymous> node:_tls_common:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      3    9.4%      JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      1   33.3%        t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%          t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%            JS: ~builtinStrategy node:internal/modules/esm/translators:412:52
+      1   33.3%        JS: ~<anonymous> node:internal/util/diff:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      1   33.3%        JS: ~<anonymous> node:internal/cluster/primary:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+     27   35.5%    t node::SocketAddressBlockList::SelfSize() const
+      4   14.8%      JS: ~finalizeResolution node:internal/modules/esm/resolve:228:28
+      4  100.0%        JS: ~moduleResolve node:internal/modules/esm/resolve:827:23
+      4  100.0%          JS: ~defaultResolve node:internal/modules/esm/resolve:939:24
+      4  100.0%            JS: ~defaultResolve node:internal/modules/esm/loader:770:17
+      3   11.1%      JS: *get file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:31:8
+      2   66.7%        t node::SocketAddressBlockList::SelfSize() const
+      1   50.0%          JS: +_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+      1  100.0%            JS: ^_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      1   50.0%          JS: *_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+      1  100.0%            JS: +_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      1   33.3%        JS: *_sendPosChg file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:375:14
+      1  100.0%          JS: +_sendPatches file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:392:15
+      1  100.0%            JS: ^_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      2    7.4%      t node::SocketAddressBlockList::SelfSize() const
+      2  100.0%        JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      1   50.0%          t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%            JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      1   50.0%          JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      1  100.0%            JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      1    3.7%      Script: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/pack.js:1:1
+      1  100.0%        t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%          JS: ~run node:internal/modules/esm/module_job:265:12
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      1    3.7%      JS: ~resume node:internal/streams/readable:1245:16
+      1  100.0%        JS: ~Readable.resume node:internal/streams/readable:1225:37
+      1  100.0%          JS: ~readMany /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/cmap/connection.js:417:20
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      1    3.7%      JS: ~onParserExecute node:_http_server:845:25
+      1    3.7%      JS: ~matchKnownFields node:_http_incoming:276:26
+      1  100.0%        JS: ~_addHeaderLine node:_http_incoming:382:24
+      1  100.0%          JS: ~get node:_http_incoming:109:16
+      1  100.0%            JS: ~handleUpgrade /Users/laszlomatuska/www/topazcube/node_modules/ws/lib/websocket-server.js:234:16
+      1    3.7%      JS: ~connectionListener node:_http_server:660:28
+      1  100.0%        JS: ^emit node:events:454:44
+      1  100.0%          JS: ~onconnection node:net:2234:22
+      1    3.7%      JS: ~command /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/sdam/server.js:130:18
+      1  100.0%        JS: ~execute /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/operations/find.js:28:18
+      1  100.0%          JS: ~tryOperation /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/operations/execute_operation.js:129:28
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      1    3.7%      JS: ~clearBuffer node:internal/streams/writable:742:21
+      1  100.0%        JS: ~Writable.uncork node:internal/streams/writable:518:37
+      1  100.0%          JS: ~sendFrame /Users/laszlomatuska/www/topazcube/node_modules/ws/lib/sender.js:558:12
+      1  100.0%            JS: ~dispatch /Users/laszlomatuska/www/topazcube/node_modules/ws/lib/sender.js:498:11
+      1    3.7%      JS: ~cleanup /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/cursor/abstract_cursor.js:702:18
+      1  100.0%        JS: ~cursorInit /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/cursor/abstract_cursor.js:625:21
+      1  100.0%          t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%            JS: ^processTicksAndRejections node:internal/process/task_queues:72:35
+      1    3.7%      JS: ~checkedRead file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/unpack.js:182:28
+      1  100.0%        JS: ~unpack file:///Users/laszlomatuska/www/topazcube/node_modules/msgpackr/unpack.js:65:8
+      1  100.0%          JS: ~I file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:16:11
+      1  100.0%            JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:287:25
+      1    3.7%      JS: ~checkAborted node:internal/fs/promises:467:22
+      1  100.0%        JS: ~readFileHandle node:internal/fs/promises:507:30
+      1  100.0%          JS: ~readFile node:internal/fs/promises:1229:24
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      1    3.7%      JS: ~_transform /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/cmap/connection.js:470:15
+      1  100.0%        JS: ~Transform._write node:internal/streams/transform:166:38
+      1  100.0%          JS: ~writeOrBuffer node:internal/streams/writable:546:23
+      1  100.0%            JS: ~_write node:internal/streams/writable:451:16
+      1    3.7%      JS: ~Socket.read node:net:785:33
+      1  100.0%        JS: ~resume_ node:internal/streams/readable:1252:17
+      1    3.7%      JS: ~FileHandle node:internal/fs/promises:243:3
+      1  100.0%        JS: ~FileHandle node:internal/fs/promises:162:14
+      1  100.0%          JS: ~open node:internal/fs/promises:630:20
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      1    3.7%      JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    3.7%      JS: ^parseSource node:internal/deps/cjs-module-lexer/lexer:85:22
+      1  100.0%        JS: ~parseCJS node:internal/deps/cjs-module-lexer/lexer:40:19
+      1  100.0%          JS: ~cjsPreparseModuleExports node:internal/modules/esm/translators:354:34
+      1  100.0%            JS: ~createCJSModuleWrap node:internal/modules/esm/translators:181:29
+      1    3.7%      JS: ^deserializePackageJSON node:internal/modules/package_json_reader:42:32
+      1  100.0%        JS: ^getNearestParentPackageJSON node:internal/modules/package_json_reader:144:37
+      1  100.0%          JS: ^<anonymous> node:internal/modules/cjs/loader:1880:37
+      1  100.0%            JS: ^<anonymous> node:internal/modules/cjs/loader:1454:33
+      1    3.7%      JS: +decode node:internal/deps/cjs-module-lexer/lexer:55:17
+      1  100.0%        JS: ^tryParseObjectDefineOrKeys node:internal/deps/cjs-module-lexer/lexer:331:37
+      1  100.0%          JS: ^parseSource node:internal/deps/cjs-module-lexer/lexer:85:22
+      1  100.0%            JS: ~parseCJS node:internal/deps/cjs-module-lexer/lexer:40:19
+     14   18.4%    JS: ^wrapSafe node:internal/modules/cjs/loader:1624:18
+     14  100.0%      JS: ^<anonymous> node:internal/modules/cjs/loader:1684:37
+     14  100.0%        JS: ^<anonymous> node:internal/modules/cjs/loader:1880:37
+     14  100.0%          JS: ^<anonymous> node:internal/modules/cjs/loader:1454:33
+     14  100.0%            JS: ^<anonymous> node:internal/modules/cjs/loader:1192:24
+      2    2.6%    JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/test/game/server/node_modules/gl-matrix/cjs/index.js:1:1
+      2  100.0%      JS: ~cjsLoader node:internal/modules/esm/translators:313:38
+      2  100.0%        JS: ~<anonymous> node:internal/modules/esm/translators:203:63
+      2  100.0%          JS: ~run node:internal/modules/esm/module_job:265:12
+      2  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      1    1.3%    JS: ~detectModuleFormat node:internal/modules/esm/get_format:36:28
+      1  100.0%      JS: ^getFileProtocolModuleFormat node:internal/modules/esm/get_format:111:37
+      1  100.0%        JS: ~defaultGetFormat node:internal/modules/esm/get_format:204:26
+      1  100.0%          JS: ^defaultLoad node:internal/modules/esm/load:83:27
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+
+     75    1.0%  T ___pthread_init
+     40   53.3%    JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+     32   80.0%      JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+     21   65.6%        JS: ~<anonymous> node:internal/modules/esm/translators:549:46
+     21  100.0%          JS: ~#translate node:internal/modules/esm/loader:526:13
+     21  100.0%            JS: ~loadAndTranslate node:internal/modules/esm/loader:579:25
+      3    9.4%        JS: ~<anonymous> node:tls:1:1
+      3  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      3  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      3    9.4%        JS: ~<anonymous> node:internal/streams/duplex:1:1
+      3  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      3  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    3.1%        JS: ~defaultResolve node:internal/modules/esm/loader:770:17
+      1  100.0%          JS: ~#cachedDefaultResolve node:internal/modules/esm/loader:698:24
+      1  100.0%            JS: ~resolve node:internal/modules/esm/loader:678:10
+      1    3.1%        JS: ~<anonymous> node:tty:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    3.1%        JS: ~<anonymous> node:net:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    3.1%        JS: ~<anonymous> node:internal/fs/promises:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      1    3.1%        JS: ~<anonymous> node:internal/crypto/cipher:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:425:24
+      7   17.5%      JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      2   28.6%        JS: ~<anonymous> node:internal/cluster/primary:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      2  100.0%            JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      2   28.6%        JS: ~<anonymous> node:internal/child_process:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      2  100.0%            JS: +requireBuiltin node:internal/bootstrap/realm:425:24
+      2   28.6%        JS: ~<anonymous> node:https:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:388:27
+      2  100.0%            JS: ~builtinStrategy node:internal/modules/esm/translators:412:52
+      1   14.3%        t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%          JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/node_modules/bson/lib/bson.cjs:318:25
+      1  100.0%            JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/node_modules/bson/lib/bson.cjs:1:1
+      1    2.5%      JS: ^<anonymous> node:internal/modules/cjs/loader:1192:24
+      1  100.0%        JS: ^traceSync node:diagnostics_channel:320:12
+      1  100.0%          JS: ^wrapModuleLoad node:internal/modules/cjs/loader:228:24
+      1  100.0%            JS: ^<anonymous> node:internal/modules/cjs/loader:1483:36
+     17   22.7%    JS: ^wrapSafe node:internal/modules/cjs/loader:1624:18
+     17  100.0%      JS: ^<anonymous> node:internal/modules/cjs/loader:1684:37
+     17  100.0%        JS: ^<anonymous> node:internal/modules/cjs/loader:1880:37
+     16   94.1%          JS: ^<anonymous> node:internal/modules/cjs/loader:1454:33
+     16  100.0%            JS: ^<anonymous> node:internal/modules/cjs/loader:1192:24
+      1    5.9%          JS: ^<anonymous> node:internal/modules/cjs/loader:1192:24
+      1  100.0%            JS: ^traceSync node:diagnostics_channel:320:12
+     15   20.0%    t node::SocketAddressBlockList::SelfSize() const
+      3   20.0%      JS: ~finalizeResolution node:internal/modules/esm/resolve:228:28
+      3  100.0%        JS: ~moduleResolve node:internal/modules/esm/resolve:827:23
+      3  100.0%          JS: ~defaultResolve node:internal/modules/esm/resolve:939:24
+      3  100.0%            JS: ~defaultResolve node:internal/modules/esm/loader:770:17
+      2   13.3%      JS: +decode node:internal/deps/cjs-module-lexer/lexer:55:17
+      2  100.0%        JS: ^tryParseRequire node:internal/deps/cjs-module-lexer/lexer:931:26
+      1   50.0%          JS: ^parseSource node:internal/deps/cjs-module-lexer/lexer:85:22
+      1  100.0%            JS: ~parseCJS node:internal/deps/cjs-module-lexer/lexer:40:19
+      1   50.0%          JS: +parseSource node:internal/deps/cjs-module-lexer/lexer:85:22
+      1  100.0%            JS: ~parseCJS node:internal/deps/cjs-module-lexer/lexer:40:19
+      1    6.7%      t node::SocketAddressBlockList::SelfSize() const
+      1  100.0%        JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      1  100.0%          JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      1  100.0%            JS: ^S file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:75:11
+      1    6.7%      JS: ~send /Users/laszlomatuska/www/topazcube/node_modules/ws/lib/sender.js:346:7
+      1  100.0%        JS: ~send /Users/laszlomatuska/www/topazcube/node_modules/ws/lib/websocket.js:448:7
+      1  100.0%          JS: ~send file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:341:13
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      1    6.7%      JS: ~moduleStrategy node:internal/modules/esm/translators:101:50
+      1  100.0%        JS: ^#translate node:internal/modules/esm/loader:526:13
+      1  100.0%          JS: ^loadAndTranslate node:internal/modules/esm/loader:579:25
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      1    6.7%      JS: ~moduleResolve node:internal/modules/esm/resolve:827:23
+      1  100.0%        JS: ~defaultResolve node:internal/modules/esm/resolve:939:24
+      1  100.0%          JS: ~defaultResolve node:internal/modules/esm/loader:770:17
+      1  100.0%            JS: ~#cachedDefaultResolve node:internal/modules/esm/loader:698:24
+      1    6.7%      JS: ~defaultLoad node:internal/modules/esm/load:83:27
+      1  100.0%        t node::SocketAddressBlockList::SelfSize() const
+      1    6.7%      JS: ~_loop file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:249:8
+      1  100.0%        JS: ~<anonymous> file:///Users/laszlomatuska/www/topazcube/dist/topazcube-server.js:243:107
+      1    6.7%      JS: ~Socket._write node:net:982:35
+      1  100.0%        JS: ^writeOrBuffer node:internal/streams/writable:546:23
+      1  100.0%          JS: ^_write node:internal/streams/writable:451:16
+      1  100.0%            JS: ^Writable.write node:internal/streams/writable:502:36
+      1    6.7%      JS: ~FileHandle node:internal/fs/promises:243:3
+      1  100.0%        JS: ~FileHandle node:internal/fs/promises:162:14
+      1  100.0%          JS: ~open node:internal/fs/promises:630:20
+      1  100.0%            t node::SocketAddressBlockList::SelfSize() const
+      1    6.7%      JS: ^insert node:internal/timers:388:16
+      1  100.0%        JS: ~_reschedule /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/sdam/monitor.js:464:16
+      1  100.0%          JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/sdam/monitor.js:398:21
+      1  100.0%            JS: ~done /Users/laszlomatuska/www/topazcube/node_modules/mongodb/lib/sdam/monitor.js:291:22
+      1    6.7%      JS: ^<anonymous> node:internal/modules/esm/translators:203:63
+      1  100.0%        JS: ~run node:internal/modules/esm/module_job:265:12
+      1  100.0%          t node::SocketAddressBlockList::SelfSize() const
+      2    2.7%    JS: ~<anonymous> /Users/laszlomatuska/www/topazcube/test/game/server/node_modules/gl-matrix/cjs/index.js:1:1
+      2  100.0%      JS: ~cjsLoader node:internal/modules/esm/translators:313:38
+      2  100.0%        JS: ~<anonymous> node:internal/modules/esm/translators:203:63
+      2  100.0%          JS: ~run node:internal/modules/esm/module_job:265:12
+      2  100.0%            t node::SocketAddressBlockList::SelfSize() const
+

@@ -1,0 +1,19 @@
+{
+  "name": "topazcube-test-game-server",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "reset && NODE_ENV=development nodemon gameserver.ts --watch",
+    "prof": "reset && NODE_ENV=production node --prof gameserver.ts"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "vite": "^6.2.0"
+  },
+  "dependencies": {
+    "gl-matrix": "^3.4.3",
+    "topazcube": "file:../../.."
+  }
+}

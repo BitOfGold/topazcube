@@ -1,0 +1,16 @@
+{
+  "name": "topazcube-test-game-client",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "reset && vite --force --host 0.0.0.0 --port 4850"
+  },
+  "devDependencies": {
+    "vite": "^6.3.2"
+  },
+  "dependencies": {
+    "three": "^0.176.0",
+    "topazcube": "file:../../.."
+  }
+}
