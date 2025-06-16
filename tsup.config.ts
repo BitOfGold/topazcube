@@ -13,9 +13,11 @@ export default defineConfig({
   clean: true,
   external: [],
   target: 'node18',
+  /*
   esbuildOptions: (options) => {
     options.banner = {
       js: '"use client";',
     };
   },
+  */
 });
