@@ -486,7 +486,7 @@ export default class TopazCubeClient {
   async _onMessage(message: Message) {
     let time = Date.now()
     if (message.c == 'full') {
-      console.log('full:', message)
+      //console.log('full:', message)
       let name:string = ''+message.n
       let doc = message.doc
       this.documents[name] = doc

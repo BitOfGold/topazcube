@@ -43,8 +43,8 @@ function App() {
         console.log("orig onMessage", message)
       }
 
-      onChange(name) {
-        setDoc({ ...this.document })
+      onChange(name, doc) {
+        setDoc({ ...doc })
       }
     }
 

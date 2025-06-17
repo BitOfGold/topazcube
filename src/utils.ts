@@ -81,7 +81,7 @@ export function reactive(name: string, object: any, callback: ReactiveCallback, 
 }
 
 export function deepGet(obj: any, path: string): any {
-  path = path.replace(/^\/+/, '')
+  //path = path.replace(/^\/+/, '')
   let paths = ('' + path).split('/').filter((p) => p)
   let len = paths.length
   for (let i = 0; i < len; i++) {
@@ -95,7 +95,7 @@ export function deepGet(obj: any, path: string): any {
 }
 
 export function deepSet(obj: any, path: string, value: any): void {
-  path = path.replace(/^\/+/, '')
+  //path = path.replace(/^\/+/, '')
   let paths = ('' + path).split('/').filter((p) => p)
   let len = paths.length
   let i: number
