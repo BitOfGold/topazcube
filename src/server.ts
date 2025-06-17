@@ -18,10 +18,10 @@ import { compress, decompress } from './compress-node'
 import fastjsonpatch from 'fast-json-patch'
 import { WebSocketServer, WebSocket } from 'ws'
 import { MongoClient, Db } from 'mongodb'
-import * as wrtc from '@roamhq/wrtc' // Server-side WebRTC implementation
 import { doesNotThrow } from 'assert'
 import { glMatrix, vec3, quat } from 'gl-matrix'
 glMatrix.setMatrixArrayType(Array)
+//import * as wrtc from '@roamhq/wrtc' // Server-side WebRTC implementation
 
 // entities/ID/
 const fastPatchProperties: Record<string, boolean> = {
@@ -473,10 +473,12 @@ export default class TopazCubeServer {
       client.ctdiff = message.ct + ping / 2 - time
       client.ping = ping
       //console.log(time, "PENG ping, ctdiff", message, ping, client.ctdiff, "ms")
+      /*
     } else if (message.c == 'rtc-offer') {
       this._processOffer(client, message)
     } else if (message.c == 'rtc-candidate') {
       this._processICECandidate(client, message)
+    */
     } else if (message.c == 'sub') {
       await this._checkDocument(message.n, client)
       if (!this.documents[message.n]) {
@@ -766,7 +768,7 @@ export default class TopazCubeServer {
             n: name,
             fdata: changes
           }
-          this.broadcastRTC(record, sus)
+          //this.broadcastRTC(record, sus)
           let t3 = Date.now()
           console.log(`_sendPatches: ${name} encode_changes: ${t2-t1}ms broadcast:${t3-t2}ms`)
         }
@@ -792,6 +794,7 @@ export default class TopazCubeServer {
 
   /*= WEBRTC ===================================================================*/
 
+  /*
   async _processOffer(client: ClientType, data: any): Promise<void> {
     //console.log("RTC: Offer received", data);
     const peerConnection = new wrtc.RTCPeerConnection({
@@ -1042,6 +1045,7 @@ export default class TopazCubeServer {
     }
     return packages
   }
+  */
 
   /*= DATABASE =================================================================*/
   // properties (of the documents) that starts with __ are not saved to the database.
