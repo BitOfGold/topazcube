@@ -180,6 +180,7 @@ declare global {
 }
 
 export default class TopazCubeClient {
+  debug = false
   CYCLE = 200 // update/patch rate in ms
   url = ''
   documents: { [key: string]: Document } = {}
@@ -630,6 +631,9 @@ export default class TopazCubeClient {
   }
 
   _onDocumentChange(name: string, op: any, target: any, path: string, value: any) {
+    if (this.debug) {
+      console.log('Document change:', name, op, target, path, value)
+    }
     if (this.isPatched || !this.allowSync) {
       return
     }
