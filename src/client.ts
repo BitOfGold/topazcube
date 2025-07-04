@@ -514,7 +514,11 @@ export default class TopazCubeClient {
         this.isPatched = true
         for (let op of message.doc) {
           let dop = msgop(op)
-          applyOperation(this.documents[name], dop)
+          try {
+            applyOperation(this.documents[name], dop)
+          } catch (e) {
+            console.error('applyOperation failed for', name, 'with op', dop, e)
+          }
         }
         this.isPatched = false
       }

@@ -71,7 +71,7 @@ function App() {
 
   // Drag and drop handlers
 
-  const handleDragStart = (e, todo, index) => {
+  const handleDragStart = (e, todo, index=false) => {
     setDraggedItem(todo)
     e.dataTransfer.effectAllowed = "move"
     // Required for Firefox
