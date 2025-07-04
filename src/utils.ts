@@ -71,7 +71,7 @@ export function reactive(name: string, object: any, callback: ReactiveCallback, 
     deleteProperty(target: any, property: string | symbol): boolean {
       let pn = path + '/' + String(property)
       if (isReactive(String(property))) {
-        callback(name, 'delete', target, pn, null)
+        callback(name, 'remove', target, pn, null)
       }
       delete target[property]
       return true
