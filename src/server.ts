@@ -115,6 +115,18 @@ export default class TopazCubeServer {
   _wss: WebSocketServer | null = null
   _exited = false
 
+  log(...args: any[]) {
+      this.log(this.name + ':', ...args);
+  }
+
+  warn(...args: any[]) {
+      this.warn(this.name + ':', ...args);
+  }
+
+  error(...args: any[]) {
+      this.error(this.name + ':', ...args);
+  }
+
   constructor({
     name = 'TopazCubeServer',
     cycle = 100,
@@ -176,10 +188,10 @@ export default class TopazCubeServer {
       }).listen(this.port)
       this._wss = new WebSocketServer({ server: httpsServer })
       httpsServer = null
-      console.log(this.name + ' running on HTTPS port ' + this.port)
+      this.log(this.name + ' running on HTTPS port ' + this.port)
     } else {
       this._wss = new WebSocketServer({ port: this.port })
-      console.log(this.name + ' running on port ' + this.port)
+      this.log(this.name + ' running on port ' + this.port)
     }
     this._wss.on('connection', (client: WebSocket) => {
       this._onConnected(client)
@@ -213,17 +225,17 @@ export default class TopazCubeServer {
       }
 
       // Process other keypresses
-      console.log(`Key pressed: ${key}`)
+      this.log(`Key pressed: ${key}`)
 
       // Example: 's' to save all documents
       if (key == 's') {
-        console.log('Saving all documents...')
+        this.log('Saving all documents...')
         this._saveAllDocuments()
       }
 
       // Example: 'i' to print server info
       if (key == 'i') {
-        console.log(
+        this.log(
           `Server: ${this.name}, Clients: ${this.clients.length}, Documents: ${Object.keys(this.documents).length}`
         )
       }
@@ -260,7 +272,7 @@ export default class TopazCubeServer {
   }
 
   _makeReactive(name: string): void {
-    //console.log(`Making document '${name}' reactive`, this.documents[name])
+    //this.log(`Making document '${name}' reactive`, this.documents[name])
     let ep: any = false
     if (this.allowFastPatch) {
       ep = fastPatchProperties
@@ -360,7 +372,7 @@ export default class TopazCubeServer {
     let updateTime = t1 - now
     this.stats.tUpdate.push(updateTime)
 
-    //console.log(`update ${this.update} patch: ${this.update % this.patchCycleDivider}`, )
+    //this.log(`update ${this.update} patch: ${this.update % this.patchCycleDivider}`, )
 
     let patchTime = 0
     if (this.update % this.patchCycleDivider == 0) {
@@ -369,7 +381,7 @@ export default class TopazCubeServer {
       patchTime = t2 - t1
       this.stats.tPatch.push(patchTime)
       if (this.allowFastPatch) {
-        console.log(`update ${this.update} dt:${dtms}ms RTC:${this.stats._sendRTCUpdate}bytes, tUpdate: ${updateTime}ms, tPatch: ${patchTime}ms`, )
+        this.log(`update ${this.update} dt:${dtms}ms RTC:${this.stats._sendRTCUpdate}bytes, tUpdate: ${updateTime}ms, tPatch: ${patchTime}ms`, )
       }
       this.stats._sendRTCUpdate = 0
     }
@@ -396,7 +408,7 @@ export default class TopazCubeServer {
         this.stats[key] = 0
       }
     }
-    //console.log('stats', this.stats)
+    //this.log('stats', this.stats)
   }
 
   /*= MESSAGES ===============================================================*/
@@ -418,7 +430,7 @@ export default class TopazCubeServer {
     client.dataChannel = null
     client.peerConnection = null
 
-    console.log('client connected', client.ID)
+    this.log('client connected', client.ID)
     this.clients.push(client)
     client.on('error', () => {
       this._onError(client, arguments)
@@ -472,7 +484,7 @@ export default class TopazCubeServer {
       let ping = time - message.st
       client.ctdiff = message.ct + ping / 2 - time
       client.ping = ping
-      //console.log(time, "PENG ping, ctdiff", message, ping, client.ctdiff, "ms")
+      //this.log(time, "PENG ping, ctdiff", message, ping, client.ctdiff, "ms")
       /*
     } else if (message.c == 'rtc-offer') {
       this._processOffer(client, message)
@@ -503,7 +515,7 @@ export default class TopazCubeServer {
   }
 
   _onError(client: ClientType, args: IArguments): void {
-    console.error('onError:', args)
+    this.error('onError:', args)
   }
 
   _onDisconnected(client: ClientType): void {
@@ -513,7 +525,7 @@ export default class TopazCubeServer {
     if (client.peerConnection) {
       client.peerConnection.close()
     }
-    console.log('client disconnected')
+    this.log('client disconnected')
     let index = this.clients.indexOf(client)
     if (index !== -1) {
       this.clients.splice(index, 1)
@@ -531,7 +543,7 @@ export default class TopazCubeServer {
       }
       let t3 = Date.now()
       if (data.length > 4096) {
-        console.log(`Big message ${dl} -> ${data.length} (${(100.0 * data.length / dl).toFixed()}%) encoding:${t2 - t1}ms compression:${t3 - t1}ms`)
+        this.log(`Big message ${dl} -> ${data.length} (${(100.0 * data.length / dl).toFixed()}%) encoding:${t2 - t1}ms compression:${t3 - t1}ms`)
       }
       this.stats.send += data.byteLength
       if (this.simulateLatency) {
@@ -542,7 +554,7 @@ export default class TopazCubeServer {
         client.send(data)
       }
     } catch (e) {
-      console.error('Error sending message:', e, message)
+      this.error('Error sending message:', e, message)
     }
   }
 
@@ -657,9 +669,9 @@ export default class TopazCubeServer {
       }
     }
 
-    console.log("--------------------------------------------------")
-    //console.log("changed", changed)
-    //console.log("count", count)
+    this.log("--------------------------------------------------")
+    //this.log("changed", changed)
+    //this.log("count", count)
 
     // create encoded changes
     //
@@ -770,7 +782,7 @@ export default class TopazCubeServer {
           }
           //this.broadcastRTC(record, sus)
           let t3 = Date.now()
-          console.log(`_sendPatches: ${name} encode_changes: ${t2-t1}ms broadcast:${t3-t2}ms`)
+          this.log(`_sendPatches: ${name} encode_changes: ${t2-t1}ms broadcast:${t3-t2}ms`)
         }
       }
     }
@@ -788,7 +800,7 @@ export default class TopazCubeServer {
     let e = entities[id]
     if (!e) { return }
     e['__changed_'+property] = true
-    //console.log('propertyChange', e)
+    //this.log('propertyChange', e)
   }
 
 
@@ -796,7 +808,7 @@ export default class TopazCubeServer {
 
   /*
   async _processOffer(client: ClientType, data: any): Promise<void> {
-    //console.log("RTC: Offer received", data);
+    //this.log("RTC: Offer received", data);
     const peerConnection = new wrtc.RTCPeerConnection({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
@@ -810,43 +822,43 @@ export default class TopazCubeServer {
 
     peerConnection.onicecandidate = (event: any) => {
       if (event.candidate) {
-        //console.log("RTC: ICE candidate generated", event.candidate.candidate.substring(0, 50) + "...");
+        //this.log("RTC: ICE candidate generated", event.candidate.candidate.substring(0, 50) + "...");
         this.send(client, {
           c: 'rtc-candidate',
           type: 'ice-candidate',
           candidate: event.candidate, // .toJSON()
         })
       } else {
-        //console.log("RTC: ICE candidate gathering complete");
+        //this.log("RTC: ICE candidate gathering complete");
       }
     }
 
     peerConnection.onconnectionstatechange = () => {
-      //console.log(`RTC: Connection state changed: ${peerConnection.connectionState}`);
+      //this.log(`RTC: Connection state changed: ${peerConnection.connectionState}`);
       if (peerConnection.connectionState === 'connected') {
         client.webRTCConnected = true
-        console.log(`RTC: Connection established with client ${client.ID}`)
+        this.log(`RTC: Connection established with client ${client.ID}`)
       } else if (
         peerConnection.connectionState === 'failed' ||
         peerConnection.connectionState === 'disconnected' ||
         peerConnection.connectionState === 'closed'
       ) {
         client.webRTCConnected = false
-        console.log(`RTC: Connection failed or closed with client ${client.ID}`)
+        this.log(`RTC: Connection failed or closed with client ${client.ID}`)
       }
     }
 
     peerConnection.onicegatheringstatechange = () => {
-      //console.log(`RTC: ICE gathering state: ${peerConnection.iceGatheringState}`);
+      //this.log(`RTC: ICE gathering state: ${peerConnection.iceGatheringState}`);
     }
 
     peerConnection.oniceconnectionstatechange = () => {
-      //console.log(`RTC: ICE connection state: ${peerConnection.iceConnectionState}`);
+      //this.log(`RTC: ICE connection state: ${peerConnection.iceConnectionState}`);
       if (
         peerConnection.iceConnectionState === 'connected' ||
         peerConnection.iceConnectionState === 'completed'
       ) {
-        //console.log(`RTC: ICE connection established with client ${client.ID}`);
+        //this.log(`RTC: ICE connection established with client ${client.ID}`);
       }
     }
 
@@ -854,7 +866,7 @@ export default class TopazCubeServer {
       await peerConnection.setRemoteDescription(
         new wrtc.RTCSessionDescription(data)
       )
-      //console.log("RTC: Remote description set successfully");
+      //this.log("RTC: Remote description set successfully");
 
       client.dataChannel = peerConnection.createDataChannel('serverchannel', {
         ordered: true,
@@ -862,13 +874,13 @@ export default class TopazCubeServer {
       })
 
       client.dataChannel.onopen = () => {
-        //console.log(`RTC: Data channel opened for client ${client.ID}`);
+        //this.log(`RTC: Data channel opened for client ${client.ID}`);
         // Try sending a test message
         try {
           const testData = { c: 'test', message: 'Hello WebRTC' }
           this.sendRTC(client, testData)
         } catch (e) {
-          console.error(
+          this.error(
             `RTC: Error sending test message to client ${client.ID}`,
             e
           )
@@ -876,23 +888,23 @@ export default class TopazCubeServer {
       }
 
       client.dataChannel.onclose = () => {
-        console.log(`RTC: Data channel closed for client ${client.ID}`)
+        this.log(`RTC: Data channel closed for client ${client.ID}`)
       }
 
       client.dataChannel.onerror = (error: Event) => {
-        console.error(`RTC: Data channel error for client ${client.ID}:`, error)
+        this.error(`RTC: Data channel error for client ${client.ID}:`, error)
       }
 
       client.dataChannel.onmessage = (event: MessageEvent) => {
         try {
           const data = decode(event.data)
-          console.log(
+          this.log(
             `RTC: Data channel message from client ${client.ID}:`,
             data
           )
           //this.onMessage(client, data);
         } catch (error) {
-          console.error(
+          this.error(
             `RTC: Error decoding message from client ${client.ID}:`,
             error
           )
@@ -903,14 +915,14 @@ export default class TopazCubeServer {
       const answer = await peerConnection.createAnswer()
       await peerConnection.setLocalDescription(answer)
 
-      //console.log(`RTC: Sending answer to client ${client.ID}`);
+      //this.log(`RTC: Sending answer to client ${client.ID}`);
       this.send(client, {
         c: 'rtc-answer',
         type: answer.type,
         sdp: answer.sdp,
       })
     } catch (error) {
-      console.error(
+      this.error(
         `RTC: Error processing offer from client ${client.ID}:`,
         error
       )
@@ -918,19 +930,19 @@ export default class TopazCubeServer {
   }
 
   async _processICECandidate(client: ClientType, data: any): Promise<void> {
-    //console.log(`RTC: Processing ICE candidate from client ${client.ID}`);
+    //this.log(`RTC: Processing ICE candidate from client ${client.ID}`);
     try {
       if (client.peerConnection && data.candidate) {
         await client.peerConnection.addIceCandidate(
           data.candidate
           //new wrtc.RTCIceCandidate(data.candidate)
         )
-        //console.log(`RTC: ICE candidate added successfully for client ${client.ID}`);
+        //this.log(`RTC: ICE candidate added successfully for client ${client.ID}`);
       } else {
-        //console.warn(`RTC: Cannot add ICE candidate for client ${client.ID} - peerConnection not ready or candidate missing`);
+        //this.warn(`RTC: Cannot add ICE candidate for client ${client.ID} - peerConnection not ready or candidate missing`);
       }
     } catch (error) {
-      console.error(`RTC: Error adding ICE candidate for client ${client.ID}`)
+      this.error(`RTC: Error adding ICE candidate for client ${client.ID}`)
     }
   }
 
@@ -980,7 +992,7 @@ export default class TopazCubeServer {
 
 
     if (data.length > 16384) {
-      console.log(`BroadcastRTC message ${dl} -> ${data.length} (${(100.0 * data.length / dl).toFixed()}%) encoding:${t2 - t1}ms compression:${t3 - t1}ms`)
+      this.log(`BroadcastRTC message ${dl} -> ${data.length} (${(100.0 * data.length / dl).toFixed()}%) encoding:${t2 - t1}ms compression:${t3 - t1}ms`)
     }
 
     let packages = this._splitRTCMessage(data)
@@ -1010,7 +1022,7 @@ export default class TopazCubeServer {
     let packages: Uint8Array[]
     if (data.byteLength > 65535) {
       const now = Date.now()
-      console.warn(`RTC: Message too large: ${data.byteLength} bytes`)
+      this.warn(`RTC: Message too large: ${data.byteLength} bytes`)
       // Split the message into smaller packages
       packages = [];
       let offset = 0;
@@ -1038,10 +1050,10 @@ export default class TopazCubeServer {
         seq++;
       }
 
-      console.log(`RTC: Large message split into ${packages.length} packages`);
+      this.log(`RTC: Large message split into ${packages.length} packages`);
     } else {
       packages = [data]
-      console.log(`RTC: Message - ${data.byteLength} bytes`)
+      this.log(`RTC: Message - ${data.byteLength} bytes`)
     }
     return packages
   }
@@ -1068,17 +1080,17 @@ export default class TopazCubeServer {
     this.mongoClient = new MongoClient(this.MongoUrl)
     try {
       await this.mongoClient.connect()
-      console.log('Connected to MongoDB')
+      this.log('Connected to MongoDB')
       const db = this.mongoClient.db(this.database)
       this.DB = db
     } catch (error) {
-      console.error('Error connecting to MongoDB:', error)
+      this.error('Error connecting to MongoDB:', error)
       this.mongoClient = null
     }
   }
 
   async _loadDocument(name: string): Promise<void> {
-    console.log(`Loading document '${name}' from MongoDB`)
+    this.log(`Loading document '${name}' from MongoDB`)
     if (this.DB) {
       try {
         const doc = await this.DB.collection(this.collection).findOne({
@@ -1089,10 +1101,10 @@ export default class TopazCubeServer {
           this.documents[name] = doc
         }
       } catch (error) {
-        console.error('Error loading document from MongoDB:', error)
+        this.error('Error loading document from MongoDB:', error)
       }
     } else {
-      console.warn('MongoDB client not initialized. Document not loaded.')
+      this.warn('MongoDB client not initialized. Document not loaded.')
     }
   }
 
@@ -1101,18 +1113,18 @@ export default class TopazCubeServer {
       try {
         const doc = this.documents[name]
         let newdoc = clonewo_(doc, '__')
-        console.log(`Saving document '${name}' to MongoDB`)
+        this.log(`Saving document '${name}' to MongoDB`)
         await this.DB.collection(this.collection).updateOne(
           { name: name },
           { $set: newdoc },
           { upsert: true }
         )
-        console.log('Document saved to MongoDB')
+        this.log('Document saved to MongoDB')
       } catch (error) {
-        console.error('Error saving document to MongoDB:', error)
+        this.error('Error saving document to MongoDB:', error)
       }
     } else {
-      console.warn('MongoDB client not initialized. Document not saved.')
+      this.warn('MongoDB client not initialized. Document not saved.')
     }
   }
 
@@ -1135,7 +1147,7 @@ export default class TopazCubeServer {
 
   _exitSignal(signal: string): void {
     if (!this._exited) {
-      console.log('\nEXIT: Caught interrupt signal ' + signal)
+      this.log('\nEXIT: Caught interrupt signal ' + signal)
       this._exited = true
       clearInterval(this._loopiv)
       this.onBeforeExit()
