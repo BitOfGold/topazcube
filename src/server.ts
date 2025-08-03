@@ -116,15 +116,15 @@ export default class TopazCubeServer {
   _exited = false
 
   log(...args: any[]) {
-      this.log(this.name + ':', ...args);
+      console.log(this.name + ':', ...args);
   }
 
   warn(...args: any[]) {
-      this.warn(this.name + ':', ...args);
+      console.warn(this.name + ':', ...args);
   }
 
   error(...args: any[]) {
-      this.error(this.name + ':', ...args);
+      console.error(this.name + ':', ...args);
   }
 
   constructor({
