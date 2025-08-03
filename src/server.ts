@@ -121,7 +121,7 @@ export default class TopazCubeServer {
     port = 8799,
     useHttps = false,
     key = './cert/key.pem',
-    cert = './cert/fullchain.pem',
+    cert = './cert/cert.pem',
     MongoUrl = 'mongodb://localhost:27017',
     database = 'topazcube',
     collection = 'documents',
