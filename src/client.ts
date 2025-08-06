@@ -463,7 +463,7 @@ export default class TopazCubeClient {
 
   /*= MESSAGES =================================================================*/
 
-  onChange(_name: string, _doc: Document | undefined) {}
+  onChange(_name: string, _doc: Document | undefined, patch: any | undefined) {}
 
   onMessage(_message: Message) {}
 
@@ -504,7 +504,7 @@ export default class TopazCubeClient {
       this.lastFullState = message.t
       this.le = message.le
       if (this._notifyChanges) {
-        this.onChange(name, this.documents[name])
+        this.onChange(name, this.documents[name], null)
       }
     } else if (message.c == 'patch') {
       // patch
@@ -523,7 +523,7 @@ export default class TopazCubeClient {
         this.isPatched = false
       }
       if (this._notifyChanges) {
-        this.onChange(name, this.documents[name])
+        this.onChange(name, this.documents[name], message.doc)
       }
     } else if (message.c == 'chunk') {
       //console.log('chunk', message)
@@ -669,7 +669,7 @@ export default class TopazCubeClient {
       this.send(record)
       dc.length = 0
       if (this._notifyChanges) {
-        this.onChange(name, this.documents[''+name])
+        this.onChange(name, this.documents[''+name], record.p)
       }
     }
   }
