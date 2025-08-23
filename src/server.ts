@@ -21,7 +21,7 @@ import { MongoClient, Db } from 'mongodb'
 import { doesNotThrow } from 'assert'
 import { glMatrix, vec3, quat } from 'gl-matrix'
 glMatrix.setMatrixArrayType(Array)
-//import * as wrtc from '@roamhq/wrtc' // Server-side WebRTC implementation
+const wrtc = require('@roamhq/wrtc') // Server-side WebRTC implementation
 
 // entities/ID/
 const fastPatchProperties: Record<string, boolean> = {
@@ -432,8 +432,8 @@ export default class TopazCubeServer {
 
     this.log('client connected', client.ID)
     this.clients.push(client)
-    client.on('error', () => {
-      this._onError(client, arguments)
+    client.on('error', (...args: any[]) => {
+      this._onError(client, args)
     })
     client.on('message', (message:any) => {
       let dec = decode(message)
@@ -514,7 +514,7 @@ export default class TopazCubeServer {
     }
   }
 
-  _onError(client: ClientType, args: IArguments): void {
+  _onError(client: ClientType, args: any[]): void {
     this.error('onError:', args)
   }
 
@@ -806,7 +806,7 @@ export default class TopazCubeServer {
 
   /*= WEBRTC ===================================================================*/
 
-  /*
+
   async _processOffer(client: ClientType, data: any): Promise<void> {
     //this.log("RTC: Offer received", data);
     const peerConnection = new wrtc.RTCPeerConnection({
@@ -1057,7 +1057,7 @@ export default class TopazCubeServer {
     }
     return packages
   }
-  */
+
 
   /*= DATABASE =================================================================*/
   // properties (of the documents) that starts with __ are not saved to the database.

@@ -126,9 +126,9 @@ export function clonewo_(obj: any, excludeStart: string | Record<string, boolean
 
   if (obj instanceof Map) {
     const mapClone = new Map()
-    for (let [key, value] of obj) {
+    Array.from(obj.entries()).forEach(([key, value]) => {
       mapClone.set(clonewo_(key, excludeStart), clonewo_(value, excludeStart))
-    }
+    })
     return mapClone
   }
 
