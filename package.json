@@ -1,6 +1,6 @@
 {
   "name": "topazcube",
-  "version": "0.1.18",
+  "version": "0.1.20",
   "description": "TopazCube is a real-time collaborative document editing, and multiplayer game library.",
   "author": "László Matuska @BitOfGold",
   "license": "Apache-2.0",
@@ -64,9 +64,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@roamhq/wrtc": "^0.9.0",
-    "@roamhq/wrtc-darwin-x64": "^0.9.0",
-    "@types/webrtc": "^0.0.46",
     "fast-json-patch": "^3.1.1",
     "gl-matrix": "^3.4.3",
     "mongodb": "^6.17.0",
@@ -74,5 +71,12 @@
     "patch-package": "^8.0.0",
     "util": "^0.12.5",
     "ws": "^8.18.2"
+  },
+  "optionalDependencies": {
+    "@roamhq/wrtc": "^0.9.0",
+    "@roamhq/wrtc-darwin-x64": "^0.9.0",
+    "@roamhq/wrtc-linux-x64": "^0.9.0",
+    "@roamhq/wrtc-win32-x64": "^0.9.0",
+    "@types/webrtc": "^0.0.46"
   }
 }

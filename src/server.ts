@@ -19,7 +19,7 @@ import fastjsonpatch from 'fast-json-patch'
 import { WebSocketServer, WebSocket } from 'ws'
 import { MongoClient, Db } from 'mongodb'
 import { glMatrix, vec3, quat } from 'gl-matrix'
-import wrtc from '@roamhq/wrtc' // Server-side WebRTC implementation
+// WebRTC implementation loaded conditionally when needed
 
 glMatrix.setMatrixArrayType(Array)
 
@@ -485,12 +485,10 @@ export default class TopazCubeServer {
       client.ctdiff = message.ct + ping / 2 - time
       client.ping = ping
       //this.log(time, "PENG ping, ctdiff", message, ping, client.ctdiff, "ms")
-      /*
     } else if (message.c == 'rtc-offer') {
       this._processOffer(client, message)
     } else if (message.c == 'rtc-candidate') {
       this._processICECandidate(client, message)
-    */
     } else if (message.c == 'sub') {
       await this._checkDocument(message.n, client)
       if (!this.documents[message.n]) {
@@ -806,8 +804,27 @@ export default class TopazCubeServer {
 
   /*= WEBRTC ===================================================================*/
 
+  private _wrtc: any = null
+
+  private async _loadWebRTC(): Promise<any> {
+    if (!this._wrtc) {
+      try {
+        this._wrtc = await import('@roamhq/wrtc')
+      } catch (error) {
+        this.error('WebRTC module not available:', error)
+        throw new Error('WebRTC functionality requires @roamhq/wrtc and platform-specific binary packages')
+      }
+    }
+    return this._wrtc
+  }
 
   async _processOffer(client: ClientType, data: any): Promise<void> {
+    if (!this.allowWebRTC) {
+      this.warn('WebRTC is disabled')
+      return
+    }
+
+    const wrtc = await this._loadWebRTC()
     //this.log("RTC: Offer received", data);
     const peerConnection = new (wrtc as any).RTCPeerConnection({
       iceServers: [
