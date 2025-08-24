@@ -23,7 +23,9 @@ const server = new TopazCubeServer({
 
 ### WebRTC Support (Optional)
 
-WebRTC functionality is optional and requires platform-specific binary packages. If you want to use WebRTC features:
+WebRTC functionality is optional and requires platform-specific binary packages. **Note: WebRTC is only available when using the CommonJS build due to native module limitations.**
+
+If you want to use WebRTC features:
 
 ```bash
 # Install the appropriate platform package
@@ -32,12 +34,27 @@ npm install @roamhq/wrtc-linux-x64   # for Linux x64
 npm install @roamhq/wrtc-win32-x64   # for Windows x64
 ```
 
-Then enable WebRTC in your server:
+Then use the CommonJS build and enable WebRTC:
 
-```typescript
+```javascript
+// Use require() and .cjs build for WebRTC support
+const TopazCubeServer = require('topazcube/server').default;
+
 const server = new TopazCubeServer({
   port: 8799,
   allowWebRTC: true // Enable WebRTC functionality
+})
+```
+
+For ESM imports without WebRTC:
+
+```typescript
+// ESM import works fine without WebRTC
+import TopazCubeServer from 'topazcube/server'
+
+const server = new TopazCubeServer({
+  port: 8799,
+  allowWebRTC: false // WebRTC not available in ESM mode
 })
 ```
 

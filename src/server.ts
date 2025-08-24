@@ -19,7 +19,7 @@ import fastjsonpatch from 'fast-json-patch'
 import { WebSocketServer, WebSocket } from 'ws'
 import { MongoClient, Db } from 'mongodb'
 import { glMatrix, vec3, quat } from 'gl-matrix'
-// WebRTC implementation loaded conditionally when needed
+import { RTCPeerConnection, RTCDataChannel, RTCSessionDescription } from "werift";
 
 glMatrix.setMatrixArrayType(Array)
 
@@ -73,6 +73,7 @@ interface StatsType {
 }
 
 export default class TopazCubeServer {
+  DEBUG = false
   name = 'TopazCubeServer'
   cycle = 100
   patchCycleDivider = 1
@@ -91,7 +92,6 @@ export default class TopazCubeServer {
   allowFastPatch = false
   allowCompression = false
   simulateLatency = 0
-
   _lastUID = 100
   clients: ClientType[] = []
   documents: Record<string, any> = {}
@@ -118,11 +118,15 @@ export default class TopazCubeServer {
   _exited = false
 
   log(...args: any[]) {
+    if (this.DEBUG) {
       console.log(this.name + ':', ...args);
+    }
   }
 
   warn(...args: any[]) {
+    if (this.DEBUG) {
       console.warn(this.name + ':', ...args);
+    }
   }
 
   error(...args: any[]) {
@@ -145,6 +149,7 @@ export default class TopazCubeServer {
     allowFastPatch = false,
     allowCompression = false,
     simulateLatency = 0,
+    DEBUG = false
   }: {
     name?: string
     cycle?: number
@@ -161,6 +166,7 @@ export default class TopazCubeServer {
     allowFastPatch?: boolean
     allowCompression?: boolean
     simulateLatency?: number
+    DEBUG?: boolean
   } = {}) {
     this.name = name
     this.cycle = cycle
@@ -177,6 +183,7 @@ export default class TopazCubeServer {
     this.allowFastPatch = allowFastPatch
     this.allowCompression = allowCompression
     this.simulateLatency = simulateLatency
+    this.DEBUG = DEBUG
 
     this._initDB()
 
@@ -786,7 +793,7 @@ export default class TopazCubeServer {
             n: name,
             fdata: changes
           }
-          //this.broadcastRTC(record, sus)
+          this.broadcastRTC(record, sus)
           let t3 = Date.now()
           this.log(`_sendPatches: ${name} encode_changes: ${t2-t1}ms broadcast:${t3-t2}ms`)
         }
@@ -813,19 +820,6 @@ export default class TopazCubeServer {
 
   /*= WEBRTC ===================================================================*/
 
-  private _wrtc: any = null
-
-  private async _loadWebRTC(): Promise<any> {
-    if (!this._wrtc) {
-      try {
-        this._wrtc = await import('@roamhq/wrtc')
-      } catch (error) {
-        this.error('WebRTC module not available:', error)
-        throw new Error('WebRTC functionality requires @roamhq/wrtc and platform-specific binary packages')
-      }
-    }
-    return this._wrtc
-  }
 
   async _processOffer(client: ClientType, data: any): Promise<void> {
     if (!this.allowWebRTC) {
@@ -833,34 +827,34 @@ export default class TopazCubeServer {
       return
     }
 
-    const wrtc = await this._loadWebRTC()
-    //this.log("RTC: Offer received", data);
-    const peerConnection = new (wrtc as any).RTCPeerConnection({
+    this.log("RTC: Processing offer from client", client.ID, data);
+
+    const peerConnection = new RTCPeerConnection({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun.cloudflare.com:3478' },
         { urls: 'stun:freestun.net:3478' },
       ],
-      iceCandidatePoolSize: 10,
+      //iceCandidatePoolSize: 10,
     })
 
     client.peerConnection = peerConnection
 
     peerConnection.onicecandidate = (event: any) => {
       if (event.candidate) {
-        //this.log("RTC: ICE candidate generated", event.candidate.candidate.substring(0, 50) + "...");
+        this.log("RTC: ICE candidate generated", event.candidate.candidate.substring(0, 50) + "...");
         this.send(client, {
           c: 'rtc-candidate',
           type: 'ice-candidate',
           candidate: event.candidate, // .toJSON()
         })
       } else {
-        //this.log("RTC: ICE candidate gathering complete");
+        this.log("RTC: ICE candidate gathering complete");
       }
     }
 
     peerConnection.onconnectionstatechange = () => {
-      //this.log(`RTC: Connection state changed: ${peerConnection.connectionState}`);
+      this.log(`RTC: Connection state changed: ${peerConnection.connectionState}`);
       if (peerConnection.connectionState === 'connected') {
         client.webRTCConnected = true
         this.log(`RTC: Connection established with client ${client.ID}`)
@@ -875,24 +869,26 @@ export default class TopazCubeServer {
     }
 
     peerConnection.onicegatheringstatechange = () => {
-      //this.log(`RTC: ICE gathering state: ${peerConnection.iceGatheringState}`);
+      this.log(`RTC: ICE gathering state: ${peerConnection.iceGatheringState}`);
     }
 
     peerConnection.oniceconnectionstatechange = () => {
-      //this.log(`RTC: ICE connection state: ${peerConnection.iceConnectionState}`);
+      this.log(`RTC: ICE connection state: ${peerConnection.iceConnectionState}`);
       if (
         peerConnection.iceConnectionState === 'connected' ||
         peerConnection.iceConnectionState === 'completed'
       ) {
-        //this.log(`RTC: ICE connection established with client ${client.ID}`);
+        this.log(`RTC: ICE connection established with client ${client.ID}`);
       }
     }
 
     try {
+      this.log("RTC: Remote description set from data", data);
       await peerConnection.setRemoteDescription(
-        new (wrtc as any).RTCSessionDescription(data)
+        //data
+        new RTCSessionDescription(data.sdp, data.type)
       )
-      //this.log("RTC: Remote description set successfully");
+      this.log("RTC: Remote description set successfully");
 
       client.dataChannel = peerConnection.createDataChannel('serverchannel', {
         ordered: true,
@@ -900,7 +896,7 @@ export default class TopazCubeServer {
       })
 
       client.dataChannel.onopen = () => {
-        //this.log(`RTC: Data channel opened for client ${client.ID}`);
+        this.log(`RTC: Data channel opened for client ${client.ID}`);
         // Try sending a test message
         try {
           const testData = { c: 'test', message: 'Hello WebRTC' }
@@ -941,7 +937,7 @@ export default class TopazCubeServer {
       const answer = await peerConnection.createAnswer()
       await peerConnection.setLocalDescription(answer)
 
-      //this.log(`RTC: Sending answer to client ${client.ID}`);
+      this.log(`RTC: Sending answer to client ${client.ID}`);
       this.send(client, {
         c: 'rtc-answer',
         type: answer.type,
@@ -956,16 +952,19 @@ export default class TopazCubeServer {
   }
 
   async _processICECandidate(client: ClientType, data: any): Promise<void> {
-    //this.log(`RTC: Processing ICE candidate from client ${client.ID}`);
+    this.log(`RTC: Processing ICE candidate from client ${client.ID}`);
     try {
+      if (data.candidate && typeof(data.candidate) == 'object') {
+        data.candidate = data.candidate.candidate
+      }
       if (client.peerConnection && data.candidate) {
         await client.peerConnection.addIceCandidate(
           data.candidate
           //new wrtc.RTCIceCandidate(data.candidate)
         )
-        //this.log(`RTC: ICE candidate added successfully for client ${client.ID}`);
+        this.log(`RTC: ICE candidate added successfully for client ${client.ID}`);
       } else {
-        //this.warn(`RTC: Cannot add ICE candidate for client ${client.ID} - peerConnection not ready or candidate missing`);
+        this.warn(`RTC: Cannot add ICE candidate for client ${client.ID} - peerConnection not ready or candidate missing`, client.peerConnection, data);
       }
     } catch (error) {
       this.error(`RTC: Error adding ICE candidate for client ${client.ID}`)
