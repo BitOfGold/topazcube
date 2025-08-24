@@ -18,10 +18,10 @@ import { compress, decompress } from './compress-node'
 import fastjsonpatch from 'fast-json-patch'
 import { WebSocketServer, WebSocket } from 'ws'
 import { MongoClient, Db } from 'mongodb'
-import { doesNotThrow } from 'assert'
 import { glMatrix, vec3, quat } from 'gl-matrix'
+import wrtc from '@roamhq/wrtc' // Server-side WebRTC implementation
+
 glMatrix.setMatrixArrayType(Array)
-const wrtc = require('@roamhq/wrtc') // Server-side WebRTC implementation
 
 // entities/ID/
 const fastPatchProperties: Record<string, boolean> = {
@@ -809,7 +809,7 @@ export default class TopazCubeServer {
 
   async _processOffer(client: ClientType, data: any): Promise<void> {
     //this.log("RTC: Offer received", data);
-    const peerConnection = new wrtc.RTCPeerConnection({
+    const peerConnection = new (wrtc as any).RTCPeerConnection({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun.cloudflare.com:3478' },
@@ -864,7 +864,7 @@ export default class TopazCubeServer {
 
     try {
       await peerConnection.setRemoteDescription(
-        new wrtc.RTCSessionDescription(data)
+        new (wrtc as any).RTCSessionDescription(data)
       )
       //this.log("RTC: Remote description set successfully");
 
