@@ -97,10 +97,12 @@ export default class TopazCubeServer {
   documents: Record<string, any> = {}
   isLoading: Record<string, boolean> = {}
   _documentChanges: Record<string, any[]> = {}
+  _documentChanged: Record<string, boolean> = {}
   _documentState: Record<string, any> = {}
 
   update = 0
   lastUpdate = 0
+  _saveiv: any = null
   _loopiv: any = null
   _statsiv: any = null
   _stillUpdating = false
@@ -286,6 +288,7 @@ export default class TopazCubeServer {
     )
     if (!this._documentChanges[name]) {
       this._documentChanges[name] = []
+      this._documentChanged[name] = false
     }
   }
 
@@ -350,6 +353,9 @@ export default class TopazCubeServer {
     this._statsiv = setInterval(() => {
       this._doStats()
     }, 1000)
+    this._saveiv = setInterval(() => {
+      this._saveChanges()
+    }, 60000)
   }
 
   _loop(): void {
@@ -463,12 +469,14 @@ export default class TopazCubeServer {
       let name = message.n
       if (!this._documentChanges[name]) {
         this._documentChanges[name] = []
+        this._documentChanged[name] = false
       }
       for (let op of message.p) {
         if (!this.canSync(client, name, op)) {
           continue
         }
         this._documentChanges[name].push(op)
+        this._documentChanged[name] = true
         let dop = msgop(op)
         applyOperation(this.documents[name], dop)
       }
@@ -788,6 +796,7 @@ export default class TopazCubeServer {
 
   _onDocumentChange(name: string, op: any, target: any, path: any, value: any): void {
     this._documentChanges[name]?.push(opmsg(op, target, path, value))
+    this._documentChanged[name] = true
   }
 
   propertyChange(name: string, id: string | number, property: string): void {
@@ -1154,6 +1163,18 @@ export default class TopazCubeServer {
     }
   }
 
+  async _saveChanges(): Promise<void> {
+    if (!this.allowSave) {
+      return
+    }
+    for (let name in this._documentChanged) {
+      if (this._documentChanged[name]) {
+        await this._saveDocument(name)
+        this._documentChanged[name] = false
+      }
+    }
+  }
+
   _initServerDocument(): void {
     this.documents['_server'] = {
       nextUID: 100,
@@ -1167,6 +1188,8 @@ export default class TopazCubeServer {
       this.log('\nEXIT: Caught interrupt signal ' + signal)
       this._exited = true
       clearInterval(this._loopiv)
+      clearInterval(this._statsiv)
+      clearInterval(this._saveiv)
       this.onBeforeExit()
       this.broadcast({ server: 'Going down' })
       this._saveAllDocuments()
