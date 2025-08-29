@@ -336,21 +336,34 @@ export default class TopazCubeClient {
           let t2 = e._lpostime2
           const interval = t2 - t1;
           const elapsed = now - t1;
-          const alpha = Math.max(0, elapsed / interval)
-          vec3.lerp(this._dpos, e._lpos1!, e._lpos2!, alpha)
-          vec3.lerp(e.position!, e.position!, this._dpos, 0.07)
-          e._changed_position = now
+          e.pelapsed = elapsed
+          /*if (elapsed > 5000) {
+          } else */if (elapsed > 1000) {
+            vec3.copy(e.position!, e._lpos2!)
+            e._changed_position = now
+          } else {
+            const alpha = Math.max(0, elapsed / interval)
+            vec3.lerp(this._dpos, e._lpos1!, e._lpos2!, alpha)
+            vec3.lerp(e.position!, e.position!, this._dpos, 0.07)
+            e._changed_position = now
+          }
         }
         if (e._lrottime1 && e._lrottime2) {
-
           let t1 = e._lrottime1
           let t2 = e._lrottime2
           const interval = t2 - t1;
           const elapsed = now - t1;
-          const alpha = Math.max(0, elapsed / interval)
-          quat.slerp(this._drot, e._lrot1!, e._lrot2!, alpha)
-          quat.slerp(e.rotation!, e.rotation!, this._drot, 0.07)
-          e._changed_rotation = now
+          e.relapsed = elapsed
+          /*if (elapsed > 5000) {
+          } else */if (elapsed > 1000) {
+            quat.copy(e.rotation!, e._lrot2!)
+            e._changed_rotation = now
+          } else {
+            const alpha = Math.max(0, elapsed / interval)
+            quat.slerp(this._drot, e._lrot1!, e._lrot2!, alpha)
+            quat.slerp(e.rotation!, e.rotation!, this._drot, 0.07)
+            e._changed_rotation = now
+          }
         }
 
       }
