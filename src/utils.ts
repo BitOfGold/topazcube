@@ -6,45 +6,12 @@ let packr = new Packr({
   useFloat32: ALWAYS
 });
 
-function convertDates(obj: any): any {
-  if (obj && typeof obj === 'object' && typeof obj.getTime === 'function') {
-    try {
-      return Math.floor(obj.getTime() / 1000)
-    } catch (e) {
-      // Not a real Date, continue processing
-    }
-  }
-  if (Array.isArray(obj)) {
-    return obj.map(convertDates)
-  }
-  if (obj !== null && typeof obj === 'object') {
-    const result: Record<string, any> = {}
-    for (const key in obj) {
-      result[key] = convertDates(obj[key])
-    }
-    return result
-  }
-  return obj
-}
-
 export function encode(obj: any): Uint8Array {
-  try {
-    return packr.pack(convertDates(obj))
-  } catch (e) {
-    console.error('Encode error', e)
-    throw e
-  }
+    return packr.pack(obj)
 }
 
 export function decode(data: Uint8Array): any {
-  try {
-    let obj = packr.unpack(data)
-    obj = convertDates(obj)
-    return obj
-  } catch (e) {
-    console.error('Decode error', e)
-    throw e
-  }
+    return packr.unpack(data)
 }
 
 type ReactiveCallback = (name: string, operation: string, target: any, path: string, value: any) => void;
