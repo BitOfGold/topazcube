@@ -24,11 +24,23 @@ function convertDates(obj: any): any {
 }
 
 export function encode(obj: any): Uint8Array {
-  return packr.pack(convertDates(obj))
+  try {
+    return packr.pack(convertDates(obj))
+  } catch (e) {
+    console.error('Encode error', e)
+    throw e
+  }
 }
 
 export function decode(data: Uint8Array): any {
-  return packr.unpack(data)
+  try {
+    let obj = packr.unpack(data)
+    obj = convertDates(obj)
+    return obj
+  } catch (e) {
+    console.error('Decode error', e)
+    throw e
+  }
 }
 
 type ReactiveCallback = (name: string, operation: string, target: any, path: string, value: any) => void;
