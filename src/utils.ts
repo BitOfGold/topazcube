@@ -7,8 +7,12 @@ let packr = new Packr({
 });
 
 function convertDates(obj: any): any {
-  if (obj instanceof Date) {
-    return Math.floor(obj.getTime() / 1000)
+  if (obj && typeof obj === 'object' && typeof obj.getTime === 'function') {
+    try {
+      return Math.floor(obj.getTime() / 1000)
+    } catch (e) {
+      // Not a real Date, continue processing
+    }
   }
   if (Array.isArray(obj)) {
     return obj.map(convertDates)
