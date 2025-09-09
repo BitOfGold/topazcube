@@ -6,8 +6,25 @@ let packr = new Packr({
   useFloat32: ALWAYS
 });
 
+function convertDates(obj: any): any {
+  if (obj instanceof Date) {
+    return Math.floor(obj.getTime() / 1000)
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(convertDates)
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const result: Record<string, any> = {}
+    for (const key in obj) {
+      result[key] = convertDates(obj[key])
+    }
+    return result
+  }
+  return obj
+}
+
 export function encode(obj: any): Uint8Array {
-  return packr.pack(obj)
+  return packr.pack(convertDates(obj))
 }
 
 export function decode(data: Uint8Array): any {
