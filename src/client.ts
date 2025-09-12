@@ -545,6 +545,10 @@ export default class TopazCubeClient {
       // patch
       this.lastPatch = message.t
       let name = message.n
+      if (!this.documents[name]) {
+        this.warn('Patch for unknown document', name)
+        return
+      }
       if (message.doc) {
         this.isPatched = true
         for (let op of message.doc) {
