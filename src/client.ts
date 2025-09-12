@@ -556,7 +556,7 @@ export default class TopazCubeClient {
           try {
             applyOperation(this.documents[name], dop)
           } catch (e) {
-            this.error('applyOperation failed for', name, 'with op', dop, e)
+            this.warn('applyOperation failed for', name, 'with op', dop, e)
           }
         }
         this.isPatched = false
