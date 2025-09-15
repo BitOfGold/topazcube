@@ -76,6 +76,8 @@ export default class TopazCubeServer {
   DEBUG = false
   name = 'TopazCubeServer'
   cycle = 100
+  saveCheckCycle = 1000
+  saveCycle = 10000
   patchCycleDivider = 1
   port = 8799
   useHttps = false
@@ -103,6 +105,7 @@ export default class TopazCubeServer {
   update = 0
   lastUpdate = 0
   _saveiv: any = null
+  _lastSave: Record<string, number> = {}
   _loopiv: any = null
   _statsiv: any = null
   _stillUpdating = false
@@ -136,6 +139,8 @@ export default class TopazCubeServer {
   constructor({
     name = 'TopazCubeServer',
     cycle = 100,
+    saveCheckCycle = 1000,
+    saveCycle = 10000,
     port = 8799,
     useHttps = false,
     key = './cert/key.pem',
@@ -153,6 +158,8 @@ export default class TopazCubeServer {
   }: {
     name?: string
     cycle?: number
+    saveCheckCycle?: number
+    saveCycle?: number
     port?: number
     useHttps?: boolean
     key?: string
@@ -170,6 +177,8 @@ export default class TopazCubeServer {
   } = {}) {
     this.name = name
     this.cycle = cycle
+    this.saveCheckCycle = saveCheckCycle
+    this.saveCycle = saveCycle
     this.port = port
     this.useHttps = useHttps
     this.key = key
@@ -362,7 +371,7 @@ export default class TopazCubeServer {
     }, 1000)
     this._saveiv = setInterval(() => {
       this._saveChanges()
-    }, 60000)
+    }, 1000)
   }
 
   _loop(): void {
@@ -1167,9 +1176,17 @@ export default class TopazCubeServer {
       return
     }
     for (let name in this._documentChanged) {
+      if (!this._lastSave[name]) {
+        this._lastSave[name] = Date.now() - 60000
+      }
+      let lastSave = this._lastSave[name]
+      if (Date.now() - lastSave < 10000) {
+        continue
+      }
       if (this._documentChanged[name]) {
         await this._saveDocument(name)
         this._documentChanged[name] = false
+        this._lastSave[name] = Date.now()
       }
     }
   }
