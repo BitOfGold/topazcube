@@ -503,6 +503,9 @@ export default class TopazCubeClient {
   onMessage(_message: Message) {}
 
   send(operation: any) {
+    if (!this.isConnected) {
+      return
+    }
     try {
       let enc = encode(operation)
       this.stats.send += enc.byteLength
