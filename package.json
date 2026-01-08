@@ -1,7 +1,7 @@
 {
   "name": "topazcube",
-  "version": "0.1.31",
-  "description": "TopazCube is a real-time collaborative document editing, and multiplayer game library.",
+  "version": "0.1.33",
+  "description": "TopazCube is a real-time collaborative document editing, multiplayer game library, and WebGPU renderer.",
   "author": "László Matuska @BitOfGold",
   "license": "Apache-2.0",
   "homepage": "https://topazcube.com",
@@ -12,13 +12,9 @@
   "bugs": {
     "url": "https://github.com/BitOfGold/topazcube/issues"
   },
-  "types": "./dist/index.d.ts",
   "files": [
     "src",
     "dist/*",
-    "index.d.ts",
-    "server.d.ts",
-    "client.d.ts",
     "LICENSE",
     "README.md"
   ],
@@ -32,7 +28,9 @@
     "multiplayer editor",
     "collaborative editor",
     "multiplayer game",
-    "collaborative game"
+    "collaborative game",
+    "webgpu",
+    "renderer"
   ],
   "sideEffects": false,
   "exports": {
@@ -47,21 +45,22 @@
     "./terminal": {
       "import": "./dist/terminal.js",
       "require": "./dist/terminal.cjs"
+    },
+    "./renderer": {
+      "import": "./dist/Renderer.js",
+      "require": "./dist/Renderer.cjs"
     }
   },
   "type": "module",
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "type-check": "tsc --noEmit",
+    "build": "vite build",
+    "dev": "vite build --watch",
     "clean": "rimraf dist"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0",
-    "@types/ws": "^8.18.1",
     "rimraf": "^6.0.1",
-    "tsup": "^8.5.0",
-    "typescript": "^5.9.2"
+    "vite": "^6.0.0",
+    "vite-plugin-glsl": "^1.5.5"
   },
   "dependencies": {
     "bufferutil": "^4.0.9",
@@ -72,6 +71,11 @@
     "patch-package": "^8.0.0",
     "util": "^0.12.5",
     "werift": "^0.22.2",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "@loaders.gl/core": "^4.3.4",
+    "@loaders.gl/gltf": "^4.3.4",
+    "lil-gui": "^0.21.0",
+    "webgpu-utils": "^2.0.2",
+    "wgsl_reflect": "^1.2.3"
   }
 }
