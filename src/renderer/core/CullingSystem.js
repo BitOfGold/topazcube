@@ -138,6 +138,7 @@ class CullingSystem {
 
             if (asset?.bsphere) {
                 // Transform asset's bsphere by entity's current matrix
+                // Note: For skinned models, bsphere is pre-computed as combined sphere of all submeshes
                 bsphere = transformBoundingSphere(asset.bsphere, entity._matrix)
                 // Cache it on entity for other uses
                 entity._bsphere = bsphere

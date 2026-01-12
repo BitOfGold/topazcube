@@ -52,6 +52,15 @@ class ShadowPass extends BasePass {
 
         // Per-mesh bind group cache (for alpha hashing with different albedo textures)
         this._meshBindGroups = new WeakMap()
+
+        // Camera shadow detection state
+        this._cameraShadowBuffer = null
+        this._cameraShadowReadBuffer = null
+        this._cameraShadowPipeline = null
+        this._cameraShadowBindGroup = null
+        this._cameraShadowUniformBuffer = null
+        this._cameraInShadow = false
+        this._cameraShadowPending = false
     }
 
     /**
@@ -185,6 +194,8 @@ class ShadowPass extends BasePass {
         // Create shadow pipeline
         await this._createPipeline()
 
+        // Create camera shadow detection resources
+        await this._createCameraShadowDetection()
     }
 
     async _createPipeline() {
@@ -676,14 +687,15 @@ class ShadowPass extends BasePass {
      * @param {mat4} cascadeMatrix - Cascade's view-projection matrix
      * @param {Array} lightDir - Normalized light direction (pointing to light)
      * @param {number} groundLevel - Ground plane Y coordinate
+     * @param {Object|null} combinedBsphere - Combined bsphere for skinned models (optional)
      * @returns {{ data: Float32Array, count: number }}
      */
-    _buildCascadeFilteredInstances(geometry, cascadeMatrix, lightDir, groundLevel) {
+    _buildCascadeFilteredInstances(geometry, cascadeMatrix, lightDir, groundLevel, combinedBsphere = null) {
         const instanceStride = 28 // floats per instance (matrix + posRadius + uvTransform + color)
         const visibleIndices = []
 
-        // Get geometry's local bounding sphere as fallback for static meshes
-        const localBsphere = geometry.getBoundingSphere?.()
+        // Use combined bsphere for skinned models, otherwise fall back to geometry's sphere
+        const localBsphere = combinedBsphere || geometry.getBoundingSphere?.()
 
         for (let i = 0; i < geometry.instanceCount; i++) {
             const offset = i * instanceStride
@@ -749,14 +761,15 @@ class ShadowPass extends BasePass {
      * @param {Array} lightDir - Normalized light direction
      * @param {number} maxDistance - Max shadow distance (min of light radius and spotMaxDistance)
      * @param {number} coneAngle - Half-angle of spotlight cone in radians
+     * @param {Object|null} combinedBsphere - Combined bsphere for skinned models (optional)
      * @returns {{ data: Float32Array, count: number }}
      */
-    _buildFilteredInstances(geometry, lightPos, lightDir, maxDistance, coneAngle) {
+    _buildFilteredInstances(geometry, lightPos, lightDir, maxDistance, coneAngle, combinedBsphere = null) {
         const instanceStride = 28 // floats per instance (matrix + posRadius + uvTransform + color)
         const visibleIndices = []
 
-        // Get geometry's local bounding sphere as fallback for static meshes
-        const localBsphere = geometry.getBoundingSphere?.()
+        // Use combined bsphere for skinned models, otherwise fall back to geometry's sphere
+        const localBsphere = combinedBsphere || geometry.getBoundingSphere?.()
 
         for (let i = 0; i < geometry.instanceCount; i++) {
             const offset = i * instanceStride
@@ -1059,6 +1072,13 @@ class ShadowPass extends BasePass {
             return
         }
 
+        // Clear bind group caches for skinned meshes to ensure fresh joint textures are bound
+        // This prevents stale bind groups from causing shadow artifacts on animated meshes
+        this._meshBindGroups = new WeakMap()
+        if (this._skinBindGroups) {
+            this._skinBindGroups = new WeakMap()
+        }
+
         // Track shadow pass stats
         let shadowDrawCalls = 0
         let shadowTriangles = 0
@@ -1127,7 +1147,9 @@ class ShadowPass extends BasePass {
             }
 
             // For static meshes, apply shadow bounding sphere culling
-            const localBsphere = geometry.getBoundingSphere?.()
+            // For skinned meshes with multiple submeshes, use combined bsphere if available
+            // This ensures all submeshes are culled together as a unit
+            const localBsphere = mesh.combinedBsphere || geometry.getBoundingSphere?.()
             if (!localBsphere || localBsphere.radius <= 0) {
                 // No bsphere - include but track it
                 meshNoBsphere++
@@ -1148,11 +1170,19 @@ class ShadowPass extends BasePass {
                 ? calculateShadowBoundingSphere(worldBsphere, lightDir, groundLevel)
                 : worldBsphere
 
+            // For skinned meshes, expand the shadow bsphere to account for animation
+            // Animated poses can extend beyond the rest pose bounding sphere
+            const skinnedExpansion = this.engine?.settings?.shadow?.skinnedBsphereExpansion ?? 2.0
+            const cullBsphere = mesh.hasSkin ? {
+                center: shadowBsphere.center,
+                radius: shadowBsphere.radius * skinnedExpansion
+            } : shadowBsphere
+
             // Distance culling - skip if shadow sphere is too far from camera
-            const dx = shadowBsphere.center[0] - camera.position[0]
-            const dy = shadowBsphere.center[1] - camera.position[1]
-            const dz = shadowBsphere.center[2] - camera.position[2]
-            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz) - shadowBsphere.radius
+            const dx = cullBsphere.center[0] - camera.position[0]
+            const dy = cullBsphere.center[1] - camera.position[1]
+            const dz = cullBsphere.center[2] - camera.position[2]
+            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz) - cullBsphere.radius
             if (distance > shadowMaxDistance) {
                 meshDistanceCulled++
                 continue
@@ -1160,7 +1190,7 @@ class ShadowPass extends BasePass {
 
             // Frustum culling - skip if shadow not visible to camera
             if (shadowFrustumCullingEnabled && cameraFrustum) {
-                if (!cameraFrustum.testSpherePlanes(shadowBsphere)) {
+                if (!cameraFrustum.testSpherePlanes(cullBsphere)) {
                     meshFrustumCulled++
                     continue
                 }
@@ -1169,7 +1199,7 @@ class ShadowPass extends BasePass {
             // HiZ occlusion culling - skip if shadow sphere is fully occluded
             if (shadowHiZEnabled && this.hizPass) {
                 const occluded = this.hizPass.testSphereOcclusion(
-                    shadowBsphere,
+                    cullBsphere,
                     camera.viewProj,
                     camera.near,
                     camera.far,
@@ -1255,7 +1285,8 @@ class ShadowPass extends BasePass {
                             geometry,
                             this.cascadeMatrices[cascade],
                             lightDir,
-                            groundLevel
+                            groundLevel,
+                            mesh.combinedBsphere // Use combined bsphere for skinned models
                         )
 
                         if (filtered.count === 0) {
@@ -1413,6 +1444,11 @@ class ShadowPass extends BasePass {
         }
         device.queue.writeBuffer(this.cascadeMatricesBuffer, 0, this.cascadeMatricesData)
 
+        // Update camera shadow detection (for adaptive volumetric fog)
+        if (mainLightEnabled) {
+            this._updateCameraShadowDetection(camera)
+        }
+
         // ===================
         // SPOTLIGHT SHADOWS (always runs, even when main light is disabled)
         // ===================
@@ -1537,7 +1573,8 @@ class ShadowPass extends BasePass {
 
                     // Build filtered instances using cone culling
                     const filtered = this._buildFilteredInstances(
-                        geometry, lightPos, spotLightDir, spotShadowMaxDist, coneAngle
+                        geometry, lightPos, spotLightDir, spotShadowMaxDist, coneAngle,
+                        mesh.combinedBsphere // Use combined bsphere for skinned models
                     )
 
                     if (filtered.count === 0) {
@@ -1816,6 +1853,219 @@ class ShadowPass extends BasePass {
      */
     getLastSlotInfo() {
         return this.lastSlotInfo
+    }
+
+    /**
+     * Get cascade matrices as JavaScript arrays (for CPU-side calculations)
+     */
+    getCascadeMatrices() {
+        return this.cascadeMatrices
+    }
+
+    /**
+     * Create resources for camera shadow detection
+     * Uses a compute shader to sample shadow at camera position
+     */
+    async _createCameraShadowDetection() {
+        const { device } = this.engine
+
+        // Create uniform buffer for camera position and cascade matrices
+        // vec3 cameraPos + pad + 3 x mat4 cascadeMatrices = 4 + 48 = 52 floats = 208 bytes
+        this._cameraShadowUniformBuffer = device.createBuffer({
+            label: 'Camera Shadow Detection Uniforms',
+            size: 256, // Aligned
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        })
+
+        // Create output buffer (1 float for shadow result)
+        this._cameraShadowBuffer = device.createBuffer({
+            label: 'Camera Shadow Result',
+            size: 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+        })
+
+        // Create readback buffer
+        this._cameraShadowReadBuffer = device.createBuffer({
+            label: 'Camera Shadow Readback',
+            size: 4,
+            usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+        })
+
+        // Create compute shader
+        const shaderModule = device.createShaderModule({
+            label: 'Camera Shadow Detection Shader',
+            code: `
+                struct Uniforms {
+                    cameraPosition: vec3f,
+                    _pad0: f32,
+                    cascadeMatrix0: mat4x4f,
+                    cascadeMatrix1: mat4x4f,
+                    cascadeMatrix2: mat4x4f,
+                }
+
+                @group(0) @binding(0) var<uniform> uniforms: Uniforms;
+                @group(0) @binding(1) var shadowMap: texture_depth_2d_array;
+                @group(0) @binding(2) var shadowSampler: sampler_comparison;
+                @group(0) @binding(3) var<storage, read_write> result: f32;
+
+                fn sampleShadowCascade(worldPos: vec3f, cascadeMatrix: mat4x4f, cascadeIndex: i32) -> f32 {
+                    let lightSpacePos = cascadeMatrix * vec4f(worldPos, 1.0);
+                    let projCoords = lightSpacePos.xyz / lightSpacePos.w;
+
+                    // Convert to UV space
+                    let uv = vec2f(projCoords.x * 0.5 + 0.5, 0.5 - projCoords.y * 0.5);
+
+                    // Check bounds
+                    if (uv.x < 0.01 || uv.x > 0.99 || uv.y < 0.01 || uv.y > 0.99 ||
+                        projCoords.z < 0.0 || projCoords.z > 1.0) {
+                        return -1.0; // Out of bounds, try next cascade
+                    }
+
+                    let bias = 0.005;
+                    let depth = projCoords.z - bias;
+                    return textureSampleCompareLevel(shadowMap, shadowSampler, uv, cascadeIndex, depth);
+                }
+
+                @compute @workgroup_size(1)
+                fn main() {
+                    let pos = uniforms.cameraPosition;
+
+                    // Sample multiple points around camera (5m sphere)
+                    var totalShadow = 0.0;
+                    var sampleCount = 0.0;
+
+                    let offsets = array<vec3f, 7>(
+                        vec3f(0.0, 0.0, 0.0),   // Center
+                        vec3f(0.0, 3.0, 0.0),   // Above
+                        vec3f(0.0, -2.0, 0.0),  // Below
+                        vec3f(4.0, 0.0, 0.0),   // Right
+                        vec3f(-4.0, 0.0, 0.0),  // Left
+                        vec3f(0.0, 0.0, 4.0),   // Front
+                        vec3f(0.0, 0.0, -4.0),  // Back
+                    );
+
+                    for (var i = 0; i < 7; i++) {
+                        let samplePos = pos + offsets[i];
+
+                        // Try cascade 0 first (closest)
+                        var shadow = sampleShadowCascade(samplePos, uniforms.cascadeMatrix0, 0);
+                        if (shadow < 0.0) {
+                            // Try cascade 1
+                            shadow = sampleShadowCascade(samplePos, uniforms.cascadeMatrix1, 1);
+                        }
+                        if (shadow < 0.0) {
+                            // Try cascade 2
+                            shadow = sampleShadowCascade(samplePos, uniforms.cascadeMatrix2, 2);
+                        }
+
+                        if (shadow >= 0.0) {
+                            totalShadow += shadow;
+                            sampleCount += 1.0;
+                        }
+                    }
+
+                    // Average shadow (0 = all in shadow, 1 = all lit)
+                    // If no valid samples, assume lit
+                    if (sampleCount > 0.0) {
+                        result = totalShadow / sampleCount;
+                    } else {
+                        result = 1.0;
+                    }
+                }
+            `
+        })
+
+        // Create bind group layout
+        this._cameraShadowBGL = device.createBindGroupLayout({
+            label: 'Camera Shadow Detection BGL',
+            entries: [
+                { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+                { binding: 1, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: 'depth', viewDimension: '2d-array' } },
+                { binding: 2, visibility: GPUShaderStage.COMPUTE, sampler: { type: 'comparison' } },
+                { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+            ]
+        })
+
+        // Create pipeline
+        this._cameraShadowPipeline = await device.createComputePipelineAsync({
+            label: 'Camera Shadow Detection Pipeline',
+            layout: device.createPipelineLayout({ bindGroupLayouts: [this._cameraShadowBGL] }),
+            compute: { module: shaderModule, entryPoint: 'main' },
+        })
+    }
+
+    /**
+     * Update camera shadow detection (called during execute)
+     * Dispatches compute shader and starts async readback
+     */
+    _updateCameraShadowDetection(camera) {
+        if (!this._cameraShadowPipeline || !this.directionalShadowMap) return
+
+        // Skip if a readback is already pending (buffer is mapped)
+        if (this._cameraShadowPending) return
+
+        const { device } = this.engine
+        const cameraPos = camera.position || [0, 0, 0]
+
+        // Update uniform buffer
+        const data = new Float32Array(64) // 256 bytes / 4
+        data[0] = cameraPos[0]
+        data[1] = cameraPos[1]
+        data[2] = cameraPos[2]
+        data[3] = 0 // padding
+
+        // Copy cascade matrices
+        if (this.cascadeMatrices[0]) data.set(this.cascadeMatrices[0], 4)
+        if (this.cascadeMatrices[1]) data.set(this.cascadeMatrices[1], 20)
+        if (this.cascadeMatrices[2]) data.set(this.cascadeMatrices[2], 36)
+
+        device.queue.writeBuffer(this._cameraShadowUniformBuffer, 0, data)
+
+        // Create bind group (recreated each frame as shadow map view might change)
+        const bindGroup = device.createBindGroup({
+            layout: this._cameraShadowBGL,
+            entries: [
+                { binding: 0, resource: { buffer: this._cameraShadowUniformBuffer } },
+                { binding: 1, resource: this.directionalShadowMapView },
+                { binding: 2, resource: this.shadowSampler },
+                { binding: 3, resource: { buffer: this._cameraShadowBuffer } },
+            ]
+        })
+
+        // Dispatch compute shader
+        const encoder = device.createCommandEncoder({ label: 'Camera Shadow Detection' })
+        const pass = encoder.beginComputePass()
+        pass.setPipeline(this._cameraShadowPipeline)
+        pass.setBindGroup(0, bindGroup)
+        pass.dispatchWorkgroups(1)
+        pass.end()
+
+        // Copy result to readback buffer
+        encoder.copyBufferToBuffer(this._cameraShadowBuffer, 0, this._cameraShadowReadBuffer, 0, 4)
+        device.queue.submit([encoder.finish()])
+
+        // Start async readback
+        this._cameraShadowPending = true
+        this._cameraShadowReadBuffer.mapAsync(GPUMapMode.READ).then(() => {
+            const data = new Float32Array(this._cameraShadowReadBuffer.getMappedRange())
+            const shadowValue = data[0]
+            this._cameraShadowReadBuffer.unmap()
+            this._cameraShadowPending = false
+
+            // Camera is "in shadow" if average shadow value is low
+            // Threshold of 0.3 means mostly in shadow
+            this._cameraInShadow = shadowValue < 0.3
+        }).catch(() => {
+            this._cameraShadowPending = false
+        })
+    }
+
+    /**
+     * Check if camera is in shadow (uses async readback result from previous frames)
+     * @returns {boolean} True if camera is mostly in shadow
+     */
+    isCameraInShadow() {
+        return this._cameraInShadow
     }
 }
 

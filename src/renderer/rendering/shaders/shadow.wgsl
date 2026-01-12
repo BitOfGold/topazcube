@@ -6,6 +6,9 @@ struct Uniforms {
     lightType: f32, // 0 = directional, 1 = point, 2 = spot
     lightDirection: vec3f,      // Light direction (for surface bias)
     surfaceBias: f32,           // Expand triangles along normals (meters)
+    skinEnabled: f32,           // 1.0 if skinning enabled, 0.0 otherwise
+    numJoints: f32,             // Number of joints in the skin
+    _pad: vec2f,
 }
 
 struct VertexInput {
@@ -29,6 +32,35 @@ struct VertexOutput {
 }
 
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(1) var jointTexture: texture_2d<f32>;
+@group(0) @binding(2) var jointSampler: sampler;
+
+// Get a 4x4 matrix from the joint texture
+fn getJointMatrix(jointIndex: u32) -> mat4x4f {
+    let row = i32(jointIndex);
+    let col0 = textureLoad(jointTexture, vec2i(0, row), 0);
+    let col1 = textureLoad(jointTexture, vec2i(1, row), 0);
+    let col2 = textureLoad(jointTexture, vec2i(2, row), 0);
+    let col3 = textureLoad(jointTexture, vec2i(3, row), 0);
+    return mat4x4f(col0, col1, col2, col3);
+}
+
+// Apply skinning to a position
+fn applySkinning(position: vec3f, joints: vec4u, weights: vec4f) -> vec3f {
+    var skinnedPos = vec3f(0.0);
+
+    let m0 = getJointMatrix(joints.x);
+    let m1 = getJointMatrix(joints.y);
+    let m2 = getJointMatrix(joints.z);
+    let m3 = getJointMatrix(joints.w);
+
+    skinnedPos += (m0 * vec4f(position, 1.0)).xyz * weights.x;
+    skinnedPos += (m1 * vec4f(position, 1.0)).xyz * weights.y;
+    skinnedPos += (m2 * vec4f(position, 1.0)).xyz * weights.z;
+    skinnedPos += (m3 * vec4f(position, 1.0)).xyz * weights.w;
+
+    return skinnedPos;
+}
 
 @vertex
 fn vertexMain(input: VertexInput) -> VertexOutput {
@@ -42,8 +74,17 @@ fn vertexMain(input: VertexInput) -> VertexOutput {
         input.model3
     );
 
+    // Apply skinning if enabled
+    var localPos = input.position;
+    if (uniforms.skinEnabled > 0.5) {
+        let weightSum = input.weights.x + input.weights.y + input.weights.z + input.weights.w;
+        if (weightSum > 0.001) {
+            localPos = applySkinning(input.position, input.joints, input.weights);
+        }
+    }
+
     // Transform to world space
-    let worldPos = modelMatrix * vec4f(input.position, 1.0);
+    let worldPos = modelMatrix * vec4f(localPos, 1.0);
 
     // Transform to light clip space
     var clipPos = uniforms.lightViewProjection * worldPos;

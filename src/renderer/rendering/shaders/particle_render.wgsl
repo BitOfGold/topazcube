@@ -85,7 +85,8 @@ struct ParticleUniforms {
     fogAlphas: vec3f,     // [nearAlpha, midAlpha, farAlpha]
     fogPad1: f32,
     fogHeightFade: vec2f, // [bottomY, topY]
-    fogPad2: vec2f,
+    fogDebug: f32,        // 0 = off, 2 = show distance
+    fogPad2: f32,
 }
 
 struct CascadeMatrices {
@@ -101,6 +102,7 @@ struct VertexOutput {
     @location(4) lighting: vec3f,   // Pre-computed lighting from particle
     @location(5) @interpolate(flat) emitterIdx: u32,  // For per-emitter settings
     @location(6) worldPos: vec3f,   // For fog height fade
+    @location(7) @interpolate(flat) centerViewZ: f32,  // View-space Z of particle center (for fog)
 }
 
 @group(0) @binding(0) var<uniform> uniforms: ParticleUniforms;
@@ -174,6 +176,7 @@ fn vertexMain(
         output.linearDepth = 0.0;
         output.lighting = vec3f(0.0);
         output.worldPos = vec3f(0.0);
+        output.centerViewZ = 0.0;
         return output;
     }
 
@@ -181,6 +184,7 @@ fn vertexMain(
     // uniforms.blendMode: 1.0 = additive, 0.0 = alpha
     let particleIsAdditive = (particle.flags & 2u) != 0u;
     let renderingAdditive = uniforms.blendMode > 0.5;
+
     if (particleIsAdditive != renderingAdditive) {
         // Wrong blend mode for this pass - skip
         output.position = vec4f(0.0, 0.0, 0.0, 0.0);
@@ -190,6 +194,7 @@ fn vertexMain(
         output.linearDepth = 0.0;
         output.lighting = vec3f(0.0);
         output.worldPos = vec3f(0.0);
+        output.centerViewZ = 0.0;
         return output;
     }
 
@@ -236,8 +241,13 @@ fn vertexMain(
     // Pass through particle color
     output.color = particle.color;
 
-    // Pass world position for fog
+    // Pass world position for fog height
     output.worldPos = particleWorldPos;
+
+    // Use the billboard's viewZ for fog distance
+    // This matches scene fog which uses view-space Z (linear depth)
+    // The billboard viewZ is already calculated correctly: -viewPos.z
+    output.centerViewZ = output.viewZ;
 
     return output;
 }
@@ -464,6 +474,56 @@ fn calcSoftFade(fragPos: vec4f, particleLinearDepth: f32) -> f32 {
     return saturate(depthDiff / uniforms.softness);
 }
 
+// Calculate fog based on particle's world position (not scene depth)
+// This allows particles to fog correctly even over sky
+fn calcFog(cameraDistance: f32, worldPosY: f32) -> f32 {
+    if (uniforms.fogEnabled < 0.5) {
+        return 0.0;
+    }
+
+    // Distance fog - two gradients
+    var distanceFog: f32;
+    let d0 = uniforms.fogDistances.x;
+    let d1 = uniforms.fogDistances.y;
+    let d2 = uniforms.fogDistances.z;
+    let a0 = uniforms.fogAlphas.x;
+    let a1 = uniforms.fogAlphas.y;
+    let a2 = uniforms.fogAlphas.z;
+
+    if (cameraDistance <= d0) {
+        distanceFog = a0;
+    } else if (cameraDistance <= d1) {
+        let t = (cameraDistance - d0) / max(d1 - d0, 0.001);
+        distanceFog = mix(a0, a1, t);
+    } else if (cameraDistance <= d2) {
+        let t = (cameraDistance - d1) / max(d2 - d1, 0.001);
+        distanceFog = mix(a1, a2, t);
+    } else {
+        distanceFog = a2;
+    }
+
+    // Height fade - full fog at bottomY, zero fog at topY
+    let bottomY = uniforms.fogHeightFade.x;
+    let topY = uniforms.fogHeightFade.y;
+    var heightFactor = clamp((worldPosY - bottomY) / max(topY - bottomY, 0.001), 0.0, 1.0);
+    if (worldPosY < bottomY) {
+        heightFactor = 0.0;
+    }
+
+    return distanceFog * (1.0 - heightFactor);
+}
+
+// Apply fog to color (blend toward fog color)
+// Particles use same fog calculation as scene
+fn applyFog(color: vec3f, cameraDistance: f32, worldPosY: f32) -> vec3f {
+    let fogAlpha = calcFog(cameraDistance, worldPosY);
+    if (fogAlpha <= 0.0) {
+        return color;
+    }
+
+    return mix(color, uniforms.fogColor, fogAlpha);
+}
+
 // Fragment for alpha blend mode
 @fragment
 fn fragmentMainAlpha(input: VertexOutput) -> FragmentOutput {
@@ -487,8 +547,51 @@ fn fragmentMainAlpha(input: VertexOutput) -> FragmentOutput {
     let baseColor = texColor.rgb * input.color.rgb;
     let litColor = applyLighting(baseColor, input.lighting);
 
-    // Fog is applied as post-process to the combined HDR buffer
-    output.color = vec4f(litColor, alpha);
+    // Use pre-computed center view-space Z from vertex shader (flat interpolated)
+    let centerViewZ = input.centerViewZ;
+
+    // Debug modes using centerViewZ (flat interpolated = same value across whole particle)
+    // Use full alpha to avoid blending artifacts in debug view
+    if (uniforms.fogDebug > 0.5) {
+        // Debug mode 1: show centerViewZ/100 as grayscale (should match scene fog)
+        if (uniforms.fogDebug < 1.5) {
+            let dist = clamp(centerViewZ / 100.0, 0.0, 1.0);
+            output.color = vec4f(vec3f(dist), 1.0);
+        }
+        // Debug mode 2: show centerViewZ at 3 scales to find correct range
+        // R = /10, G = /100, B = /1000
+        else if (uniforms.fogDebug < 2.5) {
+            let r = clamp(centerViewZ / 10.0, 0.0, 1.0);
+            let g = clamp(centerViewZ / 100.0, 0.0, 1.0);
+            let b = clamp(centerViewZ / 1000.0, 0.0, 1.0);
+            output.color = vec4f(r, g, b, 1.0);
+        }
+        // Debug mode 3: compare viewZ (interpolated) vs centerViewZ (flat)
+        // R = centerViewZ/100, G = viewZ/100, B = difference
+        else if (uniforms.fogDebug < 3.5) {
+            let center = clamp(centerViewZ / 100.0, 0.0, 1.0);
+            let vertex = clamp(input.viewZ / 100.0, 0.0, 1.0);
+            let diff = abs(center - vertex);
+            output.color = vec4f(center, vertex, diff * 10.0, 1.0);
+        }
+        // Debug mode 4: show worldPos
+        else if (uniforms.fogDebug < 4.5) {
+            let r = clamp(abs(input.worldPos.x) / 100.0, 0.0, 1.0);
+            let g = clamp(abs(input.worldPos.y) / 100.0, 0.0, 1.0);
+            let b = clamp(abs(input.worldPos.z) / 100.0, 0.0, 1.0);
+            output.color = vec4f(r, g, b, 1.0);
+        }
+        // Debug mode 5: show the actual fog color being used
+        else {
+            output.color = vec4f(uniforms.fogColor, 1.0);
+        }
+        output.depth = input.linearDepth;
+        return output;
+    }
+
+    let foggedColor = applyFog(litColor, centerViewZ, input.worldPos.y);
+
+    output.color = vec4f(foggedColor, alpha);
     output.depth = input.linearDepth;
     return output;
 }
@@ -516,9 +619,53 @@ fn fragmentMainAdditive(input: VertexOutput) -> FragmentOutput {
     let baseColor = texColor.rgb * input.color.rgb;
     let litColor = applyLighting(baseColor, input.lighting);
 
-    // Fog is applied as post-process to the combined HDR buffer
+    // Use pre-computed center view-space Z from vertex shader (flat interpolated)
+    let centerViewZ = input.centerViewZ;
+
+    // Debug modes using centerViewZ (flat interpolated = same value across whole particle)
+    // Use full alpha to avoid blending artifacts in debug view
+    if (uniforms.fogDebug > 0.5) {
+        // Debug mode 1: show centerViewZ/100 as grayscale (should match scene fog)
+        if (uniforms.fogDebug < 1.5) {
+            let dist = clamp(centerViewZ / 100.0, 0.0, 1.0);
+            output.color = vec4f(vec3f(dist), 1.0);
+        }
+        // Debug mode 2: show centerViewZ at 3 scales
+        else if (uniforms.fogDebug < 2.5) {
+            let r = clamp(centerViewZ / 10.0, 0.0, 1.0);
+            let g = clamp(centerViewZ / 100.0, 0.0, 1.0);
+            let b = clamp(centerViewZ / 1000.0, 0.0, 1.0);
+            output.color = vec4f(r, g, b, 1.0);
+        }
+        // Debug mode 3: compare viewZ vs centerViewZ
+        else if (uniforms.fogDebug < 3.5) {
+            let center = clamp(centerViewZ / 100.0, 0.0, 1.0);
+            let vertex = clamp(input.viewZ / 100.0, 0.0, 1.0);
+            let diff = abs(center - vertex);
+            output.color = vec4f(center, vertex, diff * 10.0, 1.0);
+        }
+        // Debug mode 4: show worldPos
+        else if (uniforms.fogDebug < 4.5) {
+            let r = clamp(abs(input.worldPos.x) / 100.0, 0.0, 1.0);
+            let g = clamp(abs(input.worldPos.y) / 100.0, 0.0, 1.0);
+            let b = clamp(abs(input.worldPos.z) / 100.0, 0.0, 1.0);
+            output.color = vec4f(r, g, b, 1.0);
+        }
+        // Debug mode 5: show the actual fog color being used
+        else {
+            output.color = vec4f(uniforms.fogColor, 1.0);
+        }
+        output.depth = input.linearDepth;
+        return output;
+    }
+
+    // For additive particles, fog should fade the contribution to zero
+    // (not mix with fog color, which would add fog color to the already-fogged background)
+    let fogAlpha = calcFog(centerViewZ, input.worldPos.y);
+    let fadedColor = litColor * (1.0 - fogAlpha);
+
     // Premultiply for additive blending
-    let rgb = litColor * alpha;
+    let rgb = fadedColor * alpha;
     output.color = vec4f(rgb, alpha);
     output.depth = input.linearDepth;
     return output;

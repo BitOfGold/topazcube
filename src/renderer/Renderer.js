@@ -13,6 +13,7 @@ import { InstanceManager } from "./core/InstanceManager.js"
 import { ParticleSystem } from "./core/ParticleSystem.js"
 import { ParticleEmitter } from "./core/ParticleEmitter.js"
 import { DebugUI } from "./DebugUI.js"
+import { Raycaster } from "./utils/Raycaster.js"
 
 
 // Display a failure message and stop rendering
@@ -77,7 +78,7 @@ const DEFAULT_SETTINGS = {
         fxaa: false,                // Fast approximate anti-aliasing
         renderScale: 1,             // Render resolution multiplier (1.5-2.0 for supersampling AA)
         autoScale: {
-            enabled: false,         // Auto-reduce renderScale for high resolutions
+            enabled: true,         // Auto-reduce renderScale for high resolutions
             enabledForEffects: true,// Auto scale effects at high resolutions (when main autoScale disabled)
             maxHeight: 1536,        // Height threshold (above this, scale is reduced)
             scaleFactor: 0.5,       // Factor to apply when above threshold
@@ -91,6 +92,7 @@ const DEFAULT_SETTINGS = {
         alphaHash: false,           // Enable alpha hashing/dithering for cutout transparency (global default)
         alphaHashScale: 1.0,        // Scale factor for alpha hash threshold (higher = more opaque)
         luminanceToAlpha: false,    // Derive alpha from color luminance (for old game assets where black=transparent)
+        tonemapMode: 0,             // 0=ACES, 1=Reinhard, 2=None (linear clamp)
     },
 
     // Noise settings for dithering, jittering, etc.
@@ -128,11 +130,12 @@ const DEFAULT_SETTINGS = {
         exposure: 1.6,
         fog: {
             enabled: true,
-            color: [0.8, 0.85, 0.9],
-            distances: [6, 15, 50],
+            color: [100/255.0, 135/255.0, 170/255.0],
+            distances: [0, 15, 50],
             alpha: [0.0, 0.5, 0.9],
             heightFade: [-2, 185],  // [bottomY, topY] - full fog at bottomY, zero at topY
-            brightResist: 0.2        // How much bright/emissive colors resist fog (0-1)
+            brightResist: 0.0,        // How much bright/emissive colors resist fog (0-1)
+            debug: 0,
         }
     },
 
@@ -158,6 +161,8 @@ const DEFAULT_SETTINGS = {
         normalBias: 0.015,          // ~2-3 texels for shadow acne
         surfaceBias: 0,             // Scale shadow projection larger (0.01 = 1% larger)
         strength: 1.0,
+        //frustum: false,
+        //hiZ: false,
     },
 
     // Ambient Occlusion settings
@@ -242,6 +247,33 @@ const DEFAULT_SETTINGS = {
         saturateLevel: 0.5,             // Logarithmic saturation level for indirect light
     },
 
+    // Volumetric Fog (light scattering through particles)
+    volumetricFog: {
+        enabled: false,                 // Disabled by default (performance impact)
+        resolution: 0.125,               // 1/4 render resolution for ray marching
+        maxSamples: 32,                 // Ray march samples (8-32)
+        blurRadius: 8.0,                // Gaussian blur radius
+        densityMultiplier: 1.0,         // Multiplies base fog density
+        scatterStrength: 0.35,           // Light scattering intensity
+        mainLightScatter: 1.4,          // Main directional light scattering boost
+        mainLightScatterDark: 5.0,      // Main directional light scattering boost
+        mainLightSaturation: 0.15,      // Main light color saturation in fog
+        maxFogOpacity: 0.3,             // Maximum fog opacity (0-1)
+        heightRange: [-2, 8],           // [bottom, top] Y bounds for fog (low ground fog)
+        windDirection: [1, 0, 0.2],     // Wind direction for fog animation
+        windSpeed: 0.5,                 // Wind speed multiplier
+        noiseScale: 0.9,                // 3D noise frequency (higher = finer detail)
+        noiseStrength: 0.8,             // Noise intensity (0 = uniform, 1 = full variation)
+        noiseOctaves: 6,                // Noise detail layers
+        noiseEnabled: true,             // Enable 3D noise (disable for debug)
+        lightingEnabled: true,          // Light fog from scene lights
+        shadowsEnabled: true,           // Apply shadows to fog
+        brightnessThreshold: 0.8,       // Scene luminance where fog starts fading (like bloom)
+        minVisibility: 0.15,            // Minimum fog visibility over bright surfaces (0-1)
+        skyBrightness: 1.2,             // Virtual brightness for sky pixels (depth at far plane)
+        //debugSkyCheck: true
+    },
+
     // Planar Reflections (alternative to SSR for water/floor)
     planarReflection: {
         enabled: true,                  // Disabled by default (use SSR instead)
@@ -278,6 +310,40 @@ const DEFAULT_SETTINGS = {
         autoDisable: true,              // Auto-disable SSR/SSGI on low FPS
         fpsThreshold: 60,               // FPS threshold for auto-disable
         disableDelay: 3.0,              // Seconds below threshold before disabling
+    },
+
+    // CRT effect (retro monitor simulation)
+    crt: {
+        enabled: false,                 // Enable CRT effect (geometry, scanlines, etc.)
+        upscaleEnabled: false,          // Enable upscaling (pixelated look) even when CRT disabled
+        upscaleTarget: 4,               // Target upscale multiplier (4x render resolution)
+        maxTextureSize: 4096,           // Max upscaled texture dimension
+
+        // Geometry distortion
+        curvature: 0.14,                // Screen curvature amount (0-0.15)
+        cornerRadius: 0.055,             // Rounded corner radius (0-0.1)
+        zoom: 1.06,                      // Zoom to compensate for curvature shrinkage
+
+        // Scanlines (electron beam simulation - Gaussian profile)
+        scanlineIntensity: 0.4,         // Scanline effect strength (0-1)
+        scanlineWidth: 0.0,            // Beam width (0=thin/center only, 1=no gap)
+        scanlineBrightBoost: 0.8,       // Bright pixels widen beam to fill gaps (0-1)
+        scanlineHeight: 5,              // Scanline height in canvas pixels
+
+        // RGB convergence error (color channel misalignment)
+        convergence: [0.79, 0.0, -0.77],  // RGB X offset in source pixels
+
+        // Phosphor mask
+        maskType: 'aperture',           // 'aperture', 'slot', 'shadow', 'none'
+        maskIntensity: 0.25,             // Mask strength (0-1)
+        maskScale: 1.0,                 // Mask size multiplier
+
+        // Vignette (edge darkening)
+        vignetteIntensity: 0.54,        // Edge darkening strength (0-1)
+        vignetteSize: 0.85,              // Vignette size (larger = more visible)
+
+        // Horizontal blur (beam softness)
+        blurSize: 0.79,                  // Horizontal blur in pixels (0-2)
     },
 }
 
@@ -377,10 +443,27 @@ async function createWebGPUContext(engine, canvasId) {
         engine.rendering = true
 
         function configureContext() {
-            const devicePixelRatio = window.devicePixelRatio || 1
-            const renderScale = engine.renderScale || 1.0
-            canvas.width = Math.floor(canvas.clientWidth * devicePixelRatio * renderScale) | 0
-            canvas.height = Math.floor(canvas.clientHeight * devicePixelRatio * renderScale) | 0
+            // Use exact device pixel size if available (from ResizeObserver)
+            // This ensures pixel-perfect rendering for CRT effects
+            let pixelWidth, pixelHeight
+            if (engine._devicePixelSize) {
+                pixelWidth = engine._devicePixelSize.width
+                pixelHeight = engine._devicePixelSize.height
+            } else {
+                // Fallback to clientWidth * devicePixelRatio
+                const devicePixelRatio = window.devicePixelRatio || 1
+                pixelWidth = Math.round(canvas.clientWidth * devicePixelRatio)
+                pixelHeight = Math.round(canvas.clientHeight * devicePixelRatio)
+            }
+
+            // Canvas is ALWAYS at full device pixel resolution for pixel-perfect CRT
+            // Render scale only affects internal render passes, not the final canvas
+            canvas.width = pixelWidth
+            canvas.height = pixelHeight
+
+            // Store device pixel size for CRT pass
+            engine._canvasPixelSize = { width: pixelWidth, height: pixelHeight }
+
             context.configure({
                 device: device,
                 format: canvasFormat,
@@ -507,9 +590,40 @@ class Engine {
             this.stats.avg_dt_render = 0.1
 
             requestAnimationFrame(() => this._frame())
-            window.addEventListener("resize", () => {
-                this.needsResize = true
-            })
+
+            // Use ResizeObserver with devicePixelContentBoxSize for pixel-perfect sizing
+            this._devicePixelSize = null
+            try {
+                const resizeObserver = new ResizeObserver((entries) => {
+                    for (const entry of entries) {
+                        // Prefer devicePixelContentBoxSize for exact device pixels
+                        if (entry.devicePixelContentBoxSize) {
+                            const size = entry.devicePixelContentBoxSize[0]
+                            this._devicePixelSize = {
+                                width: size.inlineSize,
+                                height: size.blockSize
+                            }
+                        } else if (entry.contentBoxSize) {
+                            // Fallback to contentBoxSize * devicePixelRatio
+                            const size = entry.contentBoxSize[0]
+                            const dpr = window.devicePixelRatio || 1
+                            this._devicePixelSize = {
+                                width: Math.round(size.inlineSize * dpr),
+                                height: Math.round(size.blockSize * dpr)
+                            }
+                        }
+                        this.needsResize = true
+                    }
+                })
+                resizeObserver.observe(this.canvas, { box: 'device-pixel-content-box' })
+            } catch (e) {
+                // Fallback if device-pixel-content-box not supported
+                console.log('ResizeObserver device-pixel-content-box not supported, falling back to window resize')
+                window.addEventListener("resize", () => {
+                    this.needsResize = true
+                })
+            }
+
             setInterval(() => {
               if (this.needsResize && !this._resizing) {
                   this.needsResize = false
@@ -652,11 +766,21 @@ class Engine {
      * @param {Array} options.position - Optional position offset [x, y, z]
      * @param {Array} options.rotation - Optional rotation offset [x, y, z] in radians
      * @param {number} options.scale - Optional uniform scale multiplier
+     * @param {boolean} options.doubleSided - Optional: force all materials to be double-sided
      * @returns {Promise<Object>} Object containing { meshes, nodes, skins, animations }
      */
     async loadScene(url, options = {}) {
         const result = await loadGltf(this, url, options)
         const { meshes, nodes } = result
+
+        // Apply scene-wide doubleSided option if specified
+        if (options.doubleSided) {
+            for (const mesh of Object.values(meshes)) {
+                if (mesh.material) {
+                    mesh.material.doubleSided = true
+                }
+            }
+        }
 
         // Update node world matrices from their hierarchy
         // This handles Blender's Z-up to Y-up rotation in parent nodes
@@ -685,6 +809,30 @@ class Engine {
             )
         }
 
+        // For skinned models with multiple submeshes, compute a combined bounding sphere
+        // This ensures all submeshes are culled together as a unit (especially for shadows)
+        let combinedBsphere = null
+        const hasAnySkin = Object.values(meshes).some(m => m.hasSkin)
+
+        if (hasAnySkin) {
+            // Collect all vertex positions from ALL meshes
+            const allPositions = []
+            for (const mesh of Object.values(meshes)) {
+                const positions = mesh.geometry?.attributes?.position
+                if (positions) {
+                    for (let i = 0; i < positions.length; i += 3) {
+                        allPositions.push(positions[i], positions[i + 1], positions[i + 2])
+                    }
+                }
+            }
+
+            if (allPositions.length > 0) {
+                // Calculate combined bounding sphere
+                const { calculateBoundingSphere } = await import('./utils/BoundingSphere.js')
+                combinedBsphere = calculateBoundingSphere(new Float32Array(allPositions))
+            }
+        }
+
         // For each mesh, find its node and compute world transform
         for (const [name, mesh] of Object.entries(meshes)) {
             // Find the node that references this mesh by nodeIndex
@@ -705,7 +853,8 @@ class Engine {
             }
 
             // Compute world bounding sphere from geometry bsphere + world transform
-            const localBsphere = mesh.geometry.getBoundingSphere?.()
+            // For skinned models, use the combined bsphere so all submeshes are culled together
+            const localBsphere = (hasAnySkin && combinedBsphere) ? combinedBsphere : mesh.geometry.getBoundingSphere?.()
             let worldCenter = [0, 0, 0]
             let worldRadius = 1
 
@@ -722,6 +871,11 @@ class Engine {
                 const scaleY = Math.sqrt(worldMatrix[4]**2 + worldMatrix[5]**2 + worldMatrix[6]**2)
                 const scaleZ = Math.sqrt(worldMatrix[8]**2 + worldMatrix[9]**2 + worldMatrix[10]**2)
                 worldRadius = localBsphere.radius * Math.max(scaleX, scaleY, scaleZ)
+            }
+
+            // Store combined bsphere on mesh for shadow pass culling
+            if (hasAnySkin && combinedBsphere) {
+                mesh.combinedBsphere = combinedBsphere
             }
 
             // Add instance with world bounding sphere
@@ -816,6 +970,17 @@ class Engine {
         return this.entityManager.get(id)
     }
 
+    /**
+     * Invalidate occlusion culling data and reset warmup period.
+     * Call this after scene loading or major camera teleportation to prevent
+     * incorrect occlusion culling with stale depth buffer data.
+     */
+    invalidateOcclusionCulling() {
+        if (this.renderer) {
+            this.renderer.invalidateOcclusionCulling()
+        }
+    }
+
     async _create() {
         let camera = new Camera(this)  // Pass engine reference
         camera.updateMatrix()
@@ -848,6 +1013,10 @@ class Engine {
 
     async _after_create() {
         this.renderer = await RenderGraph.create(this, this.environment, this.environmentEncoding)
+
+        // Initialize raycaster for async ray intersection tests
+        this.raycaster = new Raycaster(this)
+        await this.raycaster.initialize()
     }
 
     _update(dt) {
@@ -971,7 +1140,9 @@ class Engine {
             this.guiCtx.clearRect(0, 0, canvas.width, canvas.height)
         }
 
-        await this.renderer.resize(canvas.width, canvas.height)
+        // Pass render scale to RenderGraph - internal passes use scaled dimensions
+        // CRT pass will still output at full canvas resolution
+        await this.renderer.resize(canvas.width, canvas.height, this.renderScale)
         this.resize()
 
         // Small delay before allowing renders to ensure all GPU resources are ready
@@ -1321,4 +1492,5 @@ export {
     ParticleSystem,
     ParticleEmitter,
     DebugUI,
+    Raycaster,
 }

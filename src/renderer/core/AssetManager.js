@@ -104,6 +104,32 @@ class AssetManager {
 
                 // Store the full result
                 const meshNames = Object.keys(result.meshes)
+
+                // For skinned models, compute a combined bounding sphere for ALL meshes
+                // This prevents individual submeshes from being culled independently
+                // Include all meshes (skinned and rigid parts) in the combined sphere
+                let combinedBsphere = null
+                const hasAnySkin = Object.values(result.meshes).some(m => m.hasSkin)
+
+                if (hasAnySkin) {
+                    // Collect all vertex positions from ALL meshes (not just skinned ones)
+                    // This ensures rigid parts attached to skinned models share the same bounds
+                    const allPositions = []
+                    for (const mesh of Object.values(result.meshes)) {
+                        if (mesh.geometry?.attributes?.position) {
+                            const positions = mesh.geometry.attributes.position
+                            for (let i = 0; i < positions.length; i += 3) {
+                                allPositions.push(positions[i], positions[i + 1], positions[i + 2])
+                            }
+                        }
+                    }
+
+                    if (allPositions.length > 0) {
+                        combinedBsphere = calculateBoundingSphere(new Float32Array(allPositions))
+                    }
+                }
+
+                // Store the parent GLTF asset with combined bsphere for entities using parent path
                 this.assets[path] = {
                     gltf: result,
                     meshes: result.meshes,
@@ -111,14 +137,19 @@ class AssetManager {
                     animations: result.animations,
                     nodes: result.nodes,
                     meshNames: meshNames,
+                    bsphere: combinedBsphere,  // Combined bsphere for parent path entities
+                    hasSkin: hasAnySkin,       // Flag for skinned model detection
                     ready: true,
                     loading: false
                 }
 
                 // Auto-register individual meshes
                 for (const meshName of meshNames) {
-                    const modelId = this.createModelId(path, meshName)
-                    await this._registerMesh(path, meshName, result.meshes[meshName])
+                    const mesh = result.meshes[meshName]
+                    // Use combined bsphere for ALL meshes when model has any skinning
+                    // This ensures all submeshes are culled together as a unit
+                    const bsphere = (hasAnySkin && combinedBsphere) ? combinedBsphere : null
+                    await this._registerMesh(path, meshName, mesh, bsphere)
                 }
 
                 // Trigger ready callbacks
@@ -139,12 +170,16 @@ class AssetManager {
 
     /**
      * Register a mesh asset (internal)
+     * @param {string} path - GLTF file path
+     * @param {string} meshName - Mesh name
+     * @param {Object} mesh - Mesh object
+     * @param {Object|null} overrideBsphere - Optional bounding sphere (for skinned mesh combined sphere)
      */
-    async _registerMesh(path, meshName, mesh) {
+    async _registerMesh(path, meshName, mesh, overrideBsphere = null) {
         const modelId = this.createModelId(path, meshName)
 
-        // Calculate bounding sphere from geometry
-        const bsphere = calculateBoundingSphere(mesh.geometry.attributes.position)
+        // Use override bsphere if provided, otherwise calculate from geometry
+        const bsphere = overrideBsphere || calculateBoundingSphere(mesh.geometry.attributes.position)
 
         this.assets[modelId] = {
             mesh: mesh,

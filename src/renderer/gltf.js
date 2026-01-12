@@ -16,6 +16,7 @@ import { Skin, Joint } from "./Skin.js"
 function expandTriangles(attributes, expansion) {
     const positions = attributes.position
     const normals = attributes.normal
+    const tangents = attributes.tangent
     const uvs = attributes.uv
     const indices = attributes.indices
     const weights = attributes.weights
@@ -28,6 +29,7 @@ function expandTriangles(attributes, expansion) {
     // Create new arrays - each triangle gets its own 3 vertices
     const newPositions = new Float32Array(triCount * 3 * 3)
     const newNormals = normals ? new Float32Array(triCount * 3 * 3) : null
+    const newTangents = tangents ? new Float32Array(triCount * 3 * 4) : null
     const newUvs = uvs ? new Float32Array(triCount * 3 * 2) : null
     const newWeights = weights ? new Float32Array(triCount * 3 * 4) : null
     const newJoints = joints ? new Uint16Array(triCount * 3 * 4) : null
@@ -78,6 +80,14 @@ function expandTriangles(attributes, expansion) {
                 newNormals[newIdx * 3 + 2] = normals[origIdx * 3 + 2]
             }
 
+            // Copy tangents (vec4: xyz = tangent direction, w = handedness)
+            if (newTangents) {
+                newTangents[newIdx * 4 + 0] = tangents[origIdx * 4 + 0]
+                newTangents[newIdx * 4 + 1] = tangents[origIdx * 4 + 1]
+                newTangents[newIdx * 4 + 2] = tangents[origIdx * 4 + 2]
+                newTangents[newIdx * 4 + 3] = tangents[origIdx * 4 + 3]
+            }
+
             // Copy UVs
             if (newUvs) {
                 newUvs[newIdx * 2 + 0] = uvs[origIdx * 2 + 0]
@@ -108,6 +118,7 @@ function expandTriangles(attributes, expansion) {
     return {
         position: newPositions,
         normal: newNormals,
+        tangent: newTangents,
         uv: newUvs,
         indices: newIndices,
         weights: newWeights,
@@ -364,6 +375,7 @@ async function loadGltfData(engine, url, options = {}) {
             let attrs = {
                 position: getAccessor(attributes.POSITION, 'position'),
                 normal: getAccessor(attributes.NORMAL, 'normal'),
+                tangent: getAccessor(attributes.TANGENT, 'tangent'),
                 uv: getAccessor(attributes.TEXCOORD_0, 'uv'),
                 indices: getAccessor(primitive.indices, 'indices'),
                 weights: getAccessor(attributes.WEIGHTS_0, 'weights'),
@@ -517,6 +529,11 @@ async function loadGltf(engine, url, options = {}) {
             material.transparent = true
             const transmission = mesh.material.extensions.KHR_materials_transmission
             material.opacity = 1.0 - (transmission.transmissionFactor ?? 0)
+        }
+
+        // Handle double-sided materials
+        if (mesh.material.doubleSided) {
+            material.doubleSided = true
         }
 
         // Create mesh with name from GLTF (name is the key from mesh data)

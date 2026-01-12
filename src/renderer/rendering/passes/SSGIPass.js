@@ -148,8 +148,9 @@ class SSGIPass extends BasePass {
             return
         }
 
-        // Update uniforms
-        this._updateUniforms(ssgiSettings, canvas.width, canvas.height)
+        // Update uniforms - use render dimensions (this.width/height are half-res)
+        // Don't use canvas dimensions as they may differ from render dimensions
+        this._updateUniforms(ssgiSettings, this.width * 2, this.height * 2)
 
         // Create bind group
         const bindGroup = device.createBindGroup({

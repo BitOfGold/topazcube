@@ -88,6 +88,7 @@ class Pipeline {
         tileLightBuffer = null, // Optional tile light indices buffer for tiled lighting
         lightBuffer = null, // Optional light storage buffer for tiled lighting
         noiseTexture = null, // Optional noise texture for alpha hashing
+        doubleSided = false, // Optional: disable backface culling for double-sided materials
     }) {
         let texture = textures[0]
         const { canvas, device, canvasFormat, options } = engine
@@ -154,7 +155,7 @@ class Pipeline {
                 geometry.vertexBufferLayout,
                 geometry.instanceBufferLayout
             ];
-            pipelineDescriptor.primitive.cullMode = "back";
+            pipelineDescriptor.primitive.cullMode = doubleSided ? "none" : "back";
             pipelineDescriptor.depthStencil = {
                 depthWriteEnabled: true,
                 depthCompare: "less",
@@ -420,6 +421,7 @@ class Pipeline {
         p.tileLightBuffer = tileLightBuffer
         p.lightBuffer = lightBuffer
         p.noiseTexture = noiseTexture
+        p.doubleSided = doubleSided
         return p
     }
 

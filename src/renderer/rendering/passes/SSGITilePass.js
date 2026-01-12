@@ -35,6 +35,10 @@ class SSGITilePass extends BasePass {
         this.tileCountX = 0
         this.tileCountY = 0
 
+        // Stored render dimensions (from resize)
+        this.renderWidth = 0
+        this.renderHeight = 0
+
         // Input textures
         this.prevHDRTexture = null
         this.emissiveTexture = null
@@ -74,6 +78,10 @@ class SSGITilePass extends BasePass {
 
     async _createResources(width, height) {
         const { device } = this.engine
+
+        // Store render dimensions for use in _execute
+        this.renderWidth = width
+        this.renderHeight = height
 
         // Calculate tile grid dimensions
         this.tileCountX = Math.ceil(width / TILE_SIZE)
@@ -160,7 +168,7 @@ class SSGITilePass extends BasePass {
     }
 
     async _execute(context) {
-        const { device, canvas } = this.engine
+        const { device } = this.engine
 
         // Check if SSGI is enabled
         const ssgiSettings = this.settings?.ssgi
@@ -168,9 +176,9 @@ class SSGITilePass extends BasePass {
             return
         }
 
-        // Rebuild if needed
+        // Rebuild if needed (use stored render dimensions, not canvas)
         if (this._needsRebuild) {
-            await this._createResources(canvas.width, canvas.height)
+            await this._createResources(this.renderWidth, this.renderHeight)
         }
 
         // Check required textures
@@ -182,8 +190,9 @@ class SSGITilePass extends BasePass {
             return
         }
 
-        const width = canvas.width
-        const height = canvas.height
+        // Use stored render dimensions, not canvas dimensions
+        const width = this.renderWidth
+        const height = this.renderHeight
         const emissiveBoost = ssgiSettings.emissiveBoost ?? 2.0
         const maxBrightness = ssgiSettings.maxBrightness ?? 4.0
 

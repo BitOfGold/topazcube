@@ -84,6 +84,10 @@ class HiZPass extends BasePass {
 
         // Flag to prevent operations during destruction
         this._destroyed = false
+
+        // Warmup frames - occlusion is disabled until scene has rendered for a few frames
+        // This prevents false occlusion on engine creation when depth buffer is not yet populated
+        this._warmupFramesRemaining = 5
     }
 
     /**
@@ -92,6 +96,20 @@ class HiZPass extends BasePass {
      */
     setDepthTexture(depth) {
         this.depthTexture = depth
+    }
+
+    /**
+     * Invalidate occlusion culling data and reset warmup period.
+     * Call this after engine creation, scene loading, or major camera changes
+     * to prevent incorrect occlusion culling with stale data.
+     */
+    invalidate() {
+        this.hasValidHistory = false
+        this.hizDataReady = false
+        this._warmupFramesRemaining = 5  // Wait 5 frames before enabling occlusion
+        // Reset camera tracking to avoid false invalidations
+        vec3.set(this.lastCameraPosition, 0, 0, 0)
+        vec3.set(this.lastCameraDirection, 0, 0, 0)
     }
 
     async _init() {
@@ -207,6 +225,7 @@ class HiZPass extends BasePass {
         this._destroyed = false
         this.hizDataReady = false
         this.pendingReadback = null
+        this._warmupFramesRemaining = 5  // Wait a few frames after resize before enabling occlusion
     }
 
     /**
@@ -262,6 +281,11 @@ class HiZPass extends BasePass {
 
         // Increment frame counter
         this._frameCounter++
+
+        // Decrement warmup counter - occlusion is disabled until this reaches 0
+        if (this._warmupFramesRemaining > 0) {
+            this._warmupFramesRemaining--
+        }
 
         // Check if occlusion culling is enabled
         if (!this.settings?.occlusionCulling?.enabled) {
@@ -467,6 +491,12 @@ class HiZPass extends BasePass {
      */
     testSphereOcclusion(bsphere, viewProj, near, far, cameraPos) {
         this.debugStats.tested++
+
+        // Warmup period - disable occlusion for first few frames after creation/reset
+        // This ensures the depth buffer has valid geometry before we use it for culling
+        if (this._warmupFramesRemaining > 0) {
+            return false  // Still warming up - assume visible
+        }
 
         // Safety checks
         if (!this.hizDataReady || !this.hasValidHistory) {

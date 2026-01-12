@@ -26,6 +26,16 @@ class PostProcessPass extends BasePass {
         this.guiCanvas = null          // 2D canvas for GUI overlay
         this.guiTexture = null         // GPU texture for GUI
         this.guiSampler = null
+
+        // CRT support: intermediate texture when CRT is enabled
+        this.intermediateTexture = null
+        this._outputWidth = 0
+        this._outputHeight = 0
+        this._lastOutputToTexture = false  // Track output mode changes
+
+        // Store resize dimensions for runtime texture creation
+        this._resizeWidth = 0
+        this._resizeHeight = 0
     }
 
     // Convenience getter for exposure setting
@@ -38,10 +48,18 @@ class PostProcessPass extends BasePass {
     get ditheringEnabled() { return this.settings?.dithering?.enabled ?? true }
     get colorLevels() { return this.settings?.dithering?.colorLevels ?? 32 }
 
+    // Tonemap mode: 0=ACES, 1=Reinhard, 2=None/Linear
+    get tonemapMode() { return this.settings?.rendering?.tonemapMode ?? 0 }
+
     // Convenience getters for bloom settings
     get bloomEnabled() { return this.settings?.bloom?.enabled ?? true }
     get bloomIntensity() { return this.settings?.bloom?.intensity ?? 1.0 }
     get bloomRadius() { return this.settings?.bloom?.radius ?? 5 }
+
+    // CRT settings (determines if we output to intermediate texture)
+    get crtEnabled() { return this.settings?.crt?.enabled ?? false }
+    get crtUpscaleEnabled() { return this.settings?.crt?.upscaleEnabled ?? false }
+    get shouldOutputToTexture() { return this.crtEnabled || this.crtUpscaleEnabled }
 
     /**
      * Set the input texture (HDR image from LightingPass)
@@ -84,6 +102,71 @@ class PostProcessPass extends BasePass {
      */
     setGuiCanvas(canvas) {
         this.guiCanvas = canvas
+    }
+
+    /**
+     * Get the output texture (for CRT pass to use)
+     * Returns null if outputting directly to canvas
+     */
+    getOutputTexture() {
+        return this.shouldOutputToTexture ? this.intermediateTexture : null
+    }
+
+    /**
+     * Create or resize the intermediate texture for CRT
+     */
+    async _createIntermediateTexture(width, height) {
+        if (!this.shouldOutputToTexture) {
+            // Destroy if no longer needed
+            if (this.intermediateTexture?.texture) {
+                this.intermediateTexture.texture.destroy()
+                this.intermediateTexture = null
+            }
+            return
+        }
+
+        // Skip if size hasn't changed
+        if (this._outputWidth === width && this._outputHeight === height && this.intermediateTexture) {
+            return
+        }
+
+        const { device } = this.engine
+
+        // Destroy old texture
+        if (this.intermediateTexture?.texture) {
+            this.intermediateTexture.texture.destroy()
+        }
+
+        // Create intermediate texture (SDR format for CRT input)
+        const texture = device.createTexture({
+            label: 'PostProcess Intermediate',
+            size: [width, height, 1],
+            format: 'rgba8unorm',
+            usage: GPUTextureUsage.TEXTURE_BINDING |
+                   GPUTextureUsage.RENDER_ATTACHMENT |
+                   GPUTextureUsage.COPY_SRC,
+        })
+
+        const sampler = device.createSampler({
+            label: 'PostProcess Intermediate Sampler',
+            minFilter: 'nearest',
+            magFilter: 'nearest',
+        })
+
+        this.intermediateTexture = {
+            texture,
+            view: texture.createView(),
+            sampler,
+            width,
+            height,
+            format: 'rgba8unorm',  // Required by Pipeline.create()
+        }
+
+        this._outputWidth = width
+        this._outputHeight = height
+        this._needsRebuild = true
+
+        console.log(`PostProcessPass: Created intermediate texture ${width}x${height} for CRT`)
     }
 
     async _init() {
@@ -169,6 +252,11 @@ class PostProcessPass extends BasePass {
 
         const hasBloom = this.bloomTexture && this.bloomEnabled
 
+        // Determine render target: intermediate texture (for CRT) or canvas
+        const renderTarget = this.shouldOutputToTexture && this.intermediateTexture
+            ? this.intermediateTexture
+            : null
+
         this.pipeline = await Pipeline.create(this.engine, {
             label: 'postProcess',
             wgslSource: postProcessingWGSL,
@@ -176,17 +264,41 @@ class PostProcessPass extends BasePass {
             textures: textures,
             uniforms: () => ({
                 noiseParams: [this.noiseSize, this.noiseAnimated ? Math.random() : 0, this.noiseAnimated ? Math.random() : 0, this.fxaa ? 1.0 : 0.0],
-                ditherParams: [this.ditheringEnabled ? 1.0 : 0.0, this.colorLevels, 0, 0],
+                ditherParams: [this.ditheringEnabled ? 1.0 : 0.0, this.colorLevels, this.tonemapMode, 0],
                 bloomParams: [hasBloom ? 1.0 : 0.0, this.bloomIntensity, this.bloomRadius, effectiveBloomTexture?.mipCount ?? 1]
             }),
-            // No renderTarget = output to canvas
+            renderTarget: renderTarget,
         })
 
         this._needsRebuild = false
     }
 
     async _execute(context) {
-        const { device } = this.engine
+        const { device, canvas } = this.engine
+
+        // Check if CRT state changed (need to switch between canvas/texture output)
+        const needsOutputToTexture = this.shouldOutputToTexture
+        const hasIntermediateTexture = !!this.intermediateTexture
+
+        // Detect output mode change
+        if (needsOutputToTexture !== this._lastOutputToTexture) {
+            this._lastOutputToTexture = needsOutputToTexture
+            this._needsRebuild = true
+
+            if (needsOutputToTexture && !hasIntermediateTexture) {
+                // CRT was just enabled - create intermediate texture at stored resize dimensions
+                // Use resize dimensions (render-scaled), not canvas dimensions (full resolution)
+                const w = this._resizeWidth || canvas.width
+                const h = this._resizeHeight || canvas.height
+                await this._createIntermediateTexture(w, h)
+            } else if (!needsOutputToTexture && hasIntermediateTexture) {
+                // CRT was just disabled - destroy intermediate texture
+                if (this.intermediateTexture?.texture) {
+                    this.intermediateTexture.texture.destroy()
+                    this.intermediateTexture = null
+                }
+            }
+        }
 
         // Update GUI texture from canvas if available
         if (this.guiCanvas && this.guiCanvas.width > 0 && this.guiCanvas.height > 0) {
@@ -249,7 +361,7 @@ class PostProcessPass extends BasePass {
         // Update uniforms each frame
         this.pipeline.uniformValues.set({
             noiseParams: [this.noiseSize, this.noiseAnimated ? Math.random() : 0, this.noiseAnimated ? Math.random() : 0, this.fxaa ? 1.0 : 0.0],
-            ditherParams: [this.ditheringEnabled ? 1.0 : 0.0, this.colorLevels, 0, 0],
+            ditherParams: [this.ditheringEnabled ? 1.0 : 0.0, this.colorLevels, this.tonemapMode, 0],
             bloomParams: [hasBloom ? 1.0 : 0.0, this.bloomIntensity, this.bloomRadius, effectiveBloomTexture?.mipCount ?? 1]
         })
 
@@ -258,6 +370,13 @@ class PostProcessPass extends BasePass {
     }
 
     async _resize(width, height) {
+        // Store resize dimensions for runtime texture creation
+        this._resizeWidth = width
+        this._resizeHeight = height
+
+        // Create intermediate texture for CRT if enabled
+        await this._createIntermediateTexture(width, height)
+
         // Pipeline needs rebuild since canvas size changed
         this._needsRebuild = true
     }
@@ -275,6 +394,10 @@ class PostProcessPass extends BasePass {
         if (this.dummyGuiTexture?.texture) {
             this.dummyGuiTexture.texture.destroy()
             this.dummyGuiTexture = null
+        }
+        if (this.intermediateTexture?.texture) {
+            this.intermediateTexture.texture.destroy()
+            this.intermediateTexture = null
         }
     }
 }

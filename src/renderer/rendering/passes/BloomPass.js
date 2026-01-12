@@ -104,10 +104,13 @@ class BloomPass extends BasePass {
         const bloomWidth = Math.max(1, Math.floor(width * scale))
         const bloomHeight = Math.max(1, Math.floor(height * scale))
 
+        // Only log if dimensions actually changed
+        if (this.bloomWidth !== bloomWidth || this.bloomHeight !== bloomHeight) {
+            console.log(`Bloom: ${width}x${height} -> ${bloomWidth}x${bloomHeight} (scale: ${scale})`)
+        }
+
         this.bloomWidth = bloomWidth
         this.bloomHeight = bloomHeight
-
-        console.log(`Bloom: ${width}x${height} -> ${bloomWidth}x${bloomHeight} (scale: ${scale})`)
 
         // Create textures at scaled resolution
         const createBloomTexture = (label) => {

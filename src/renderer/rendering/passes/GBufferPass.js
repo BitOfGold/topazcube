@@ -293,7 +293,8 @@ class GBufferPass extends BasePass {
         const isSkinned = mesh.hasSkin && mesh.skin
         const meshId = mesh.uid || mesh.geometry?.uid || 'default'
         const forceEmissive = mesh.material?.forceEmissive ? '_emissive' : ''
-        return `${mesh.material.uid}_${meshId}${isSkinned ? '_skinned' : ''}${forceEmissive}`
+        const doubleSided = mesh.material?.doubleSided ? '_dbl' : ''
+        return `${mesh.material.uid}_${meshId}${isSkinned ? '_skinned' : ''}${forceEmissive}${doubleSided}`
     }
 
     /**
@@ -341,6 +342,7 @@ class GBufferPass extends BasePass {
             renderTarget: this.gbuffer,
             skin: isSkinned ? mesh.skin : null,
             noiseTexture: this.noiseTexture,
+            doubleSided: mesh.material?.doubleSided ?? false,
         }).then(pipeline => {
             // Move from pending to ready
             this.pendingPipelines.delete(key)
@@ -386,6 +388,7 @@ class GBufferPass extends BasePass {
             renderTarget: this.gbuffer,
             skin: isSkinned ? mesh.skin : null,
             noiseTexture: this.noiseTexture,
+            doubleSided: mesh.material?.doubleSided ?? false,
         })
         // Mark as warming up - needs 2 frames to stabilize
         pipeline._warmupFrames = 2
@@ -418,6 +421,11 @@ class GBufferPass extends BasePass {
         const emissionFactor = this.settings?.environment?.emissionFactor ?? [1.0, 1.0, 1.0, 4.0]
         const mipBias = this.settings?.rendering?.mipBias ?? options.mipBias ?? 0
 
+        // Use absolute time for scene-loaded skins (same as entity animations)
+        // This ensures consistent timing regardless of frame rate fluctuations
+        const animationSpeed = this.settings?.animation?.speed ?? 1.0
+        const globalAnimTime = (performance.now() / 1000) * animationSpeed
+
         stats.drawCalls = 0
         stats.triangles = 0
 
@@ -432,15 +440,25 @@ class GBufferPass extends BasePass {
         let commandEncoder = null
         let passEncoder = null
 
+        // Track which skins have been updated this frame (avoids duplicate updates)
+        const updatedSkins = new Set()
+
         // New system: render batches from InstanceManager
         if (batches && batches.size > 0) {
             for (const [modelId, batch] of batches) {
                 const mesh = batch.mesh
                 if (!mesh) continue
 
-                // Update skin animation if skinned (skip if externally managed)
-                if (batch.hasSkin && batch.skin && !batch.skin.externallyManaged) {
-                    batch.skin.update(dt)
+                // Update skin animation if skinned (skip if externally managed or already updated)
+                // Use absolute time (same as entities) for consistent animation speed
+                if (batch.hasSkin && batch.skin && !batch.skin.externallyManaged && !updatedSkins.has(batch.skin)) {
+                    // Track animation start time per skin for absolute timing
+                    if (batch.skin._animStartTime === undefined) {
+                        batch.skin._animStartTime = globalAnimTime
+                    }
+                    const skinAnimTime = globalAnimTime - batch.skin._animStartTime
+                    batch.skin.updateAtTime(skinAnimTime)
+                    updatedSkins.add(batch.skin)
                 }
 
                 const pipeline = await this._getOrCreatePipeline(mesh)
@@ -598,9 +616,15 @@ class GBufferPass extends BasePass {
 
                 this.legacyCullingStats.rendered++
 
-                // Update skin animation (skip if externally managed - already updated by RenderGraph)
-                if (mesh.skin && mesh.hasSkin && !mesh.skin.externallyManaged) {
-                    mesh.skin.update(dt)
+                // Update skin animation using absolute time (skip if externally managed or already updated)
+                if (mesh.skin && mesh.hasSkin && !mesh.skin.externallyManaged && !updatedSkins.has(mesh.skin)) {
+                    // Track animation start time per skin for absolute timing
+                    if (mesh.skin._animStartTime === undefined) {
+                        mesh.skin._animStartTime = globalAnimTime
+                    }
+                    const skinAnimTime = globalAnimTime - mesh.skin._animStartTime
+                    mesh.skin.updateAtTime(skinAnimTime)
+                    updatedSkins.add(mesh.skin)
                 }
 
                 // Ensure pipeline geometry matches mesh geometry

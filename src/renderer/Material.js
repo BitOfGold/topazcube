@@ -34,6 +34,9 @@ class Material {
 
         // Specular boost: enables 3 additional specular lights for shiny materials (0-1, default 0 = disabled)
         this.specularBoost = 0
+
+        // Double-sided rendering: disable backface culling
+        this.doubleSided = false
     }
 
     /**

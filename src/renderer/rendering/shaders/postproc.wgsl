@@ -6,7 +6,7 @@ struct VertexOutput {
 struct Uniforms {
     canvasSize: vec2f,
     noiseParams: vec4f,  // x = size, y = offsetX, z = offsetY, w = fxaaEnabled
-    ditherParams: vec4f, // x = enabled, y = colorLevels (32 = 5-bit PS1 style), z = unused, w = unused
+    ditherParams: vec4f, // x = enabled, y = colorLevels (32 = 5-bit PS1 style), z = tonemapMode (0=ACES, 1=Reinhard, 2=None/Linear), w = unused
     bloomParams: vec4f,  // x = enabled, y = intensity, z = radius (mip levels to sample), w = mipCount
 }
 
@@ -222,6 +222,26 @@ fn aces_tone_map(hdr: vec3<f32>) -> vec3<f32> {
     return clamp(m2 * (a / b), vec3(0.0), vec3(1.0));
 }
 
+// Reinhard tone mapping
+fn reinhard_tone_map(hdr: vec3<f32>) -> vec3<f32> {
+    return hdr / (hdr + vec3(1.0));
+}
+
+// No tone mapping - just gamma correction and clamp
+fn linear_tone_map(hdr: vec3<f32>) -> vec3<f32> {
+    return clamp(hdr, vec3(0.0), vec3(1.0));
+}
+
+// Apply selected tone mapping
+fn apply_tone_map(hdr: vec3<f32>, mode: i32) -> vec3<f32> {
+    if (mode == 1) {
+        return reinhard_tone_map(hdr);
+    } else if (mode == 2) {
+        return linear_tone_map(hdr);
+    }
+    return aces_tone_map(hdr);  // Default: ACES (mode 0)
+}
+
 @vertex
 fn vertexMain(@builtin(vertex_index) vertexIndex : u32) -> VertexOutput {
     var output : VertexOutput;
@@ -248,7 +268,8 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         color += bloom * uniforms.bloomParams.y;  // y = intensity
     }
 
-    var sdr = aces_tone_map(color);
+    let tonemapMode = i32(uniforms.ditherParams.z);
+    var sdr = apply_tone_map(color, tonemapMode);
 
     // Blend GUI overlay (after tone mapping, before dithering)
     // GUI is premultiplied alpha blending

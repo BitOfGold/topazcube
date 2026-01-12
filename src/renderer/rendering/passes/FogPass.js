@@ -37,6 +37,7 @@ class FogPass extends BasePass {
     get fogAlpha() { return this.settings?.environment?.fog?.alpha ?? [0.0, 0.3, 0.8] }
     get fogHeightFade() { return this.settings?.environment?.fog?.heightFade ?? [-10, 100] }
     get fogBrightResist() { return this.settings?.environment?.fog?.brightResist ?? 0.8 }
+    get fogDebug() { return this.settings?.environment?.fog?.debug ?? 0 }  // 0=off, 1=show fogAlpha, 2=show distance, 3=show heightFactor
 
     /**
      * Set the input texture (HDR lighting output)
@@ -134,6 +135,8 @@ class FogPass extends BasePass {
                     brightResist: f32,           // float 47
                     heightFade: vec2f,           // floats 48-49
                     screenSize: vec2f,           // floats 50-51
+                    debug: f32,                  // float 52: 0=off, 1=fogAlpha, 2=distance, 3=heightFactor
+                    _pad: vec3f,                 // floats 53-55
                 }
 
                 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
@@ -262,6 +265,26 @@ class FogPass extends BasePass {
                     let brightnessResist = clamp((luminance - 1.0) / 2.0, 0.0, 1.0);
                     fogAlpha *= (1.0 - brightnessResist * uniforms.brightResist);
 
+                    // Debug output
+                    let debugMode = i32(uniforms.debug);
+                    if (debugMode == 1) {
+                        // Show fog alpha as grayscale
+                        return vec4f(vec3f(fogAlpha), 1.0);
+                    } else if (debugMode == 2) {
+                        // Show distance (normalized to 0-100m range)
+                        let normDist = clamp(cameraDistance / 100.0, 0.0, 1.0);
+                        return vec4f(vec3f(normDist), 1.0);
+                    } else if (debugMode == 3) {
+                        // Show height factor
+                        return vec4f(vec3f(heightFactor), 1.0);
+                    } else if (debugMode == 4) {
+                        // Show distance fog (before height fade)
+                        return vec4f(vec3f(distanceFog), 1.0);
+                    } else if (debugMode == 5) {
+                        // Show the actual fog color being used (to verify it matches particles)
+                        return vec4f(uniforms.fogColor, 1.0);
+                    }
+
                     // Apply fog
                     let foggedColor = mix(color.rgb, uniforms.fogColor, fogAlpha);
 
@@ -362,6 +385,9 @@ class FogPass extends BasePass {
         uniformData[49] = heightFade[1]  // topY
         uniformData[50] = this.width
         uniformData[51] = this.height
+
+        // debug (float 52) + padding (floats 53-55)
+        uniformData[52] = this.fogDebug
 
         device.queue.writeBuffer(this.uniformBuffer, 0, uniformData)
 

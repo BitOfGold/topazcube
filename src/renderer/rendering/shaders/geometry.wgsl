@@ -429,7 +429,7 @@ fn screenHash(screenPos: vec2f) -> f32 {
 }
 
 @fragment
-fn fragmentMain(input: VertexOutput) -> GBufferOutput {
+fn fragmentMain(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> GBufferOutput {
     // Clip plane: discard fragments based on clip plane Y level and direction
     // Used for planar reflections to avoid rendering geometry on the wrong side of the water
     // Direction > 0: discard below clipPlaneY (camera above water, show above-water objects)
@@ -505,12 +505,42 @@ fn fragmentMain(input: VertexOutput) -> GBufferOutput {
     let nsample = textureSampleBias(normalTexture, normalSampler, input.uv, mipBias).rgb;
     let tangentNormal = normalize(nsample * 2.0 - 1.0);
 
-    // Create TBN matrix using world normal
+    // Calculate cotangent frame from screen-space derivatives (runtime tangent generation)
+    // Based on: http://www.thetenthplanet.de/archives/1180
+    let dPdx = dpdx(input.worldPos);
+    let dPdy = dpdy(input.worldPos);
+    let dUVdx = dpdx(input.uv);
+    let dUVdy = dpdy(input.uv);
+
     let N = normalize(input.normal);
-    // Use different reference vector when N is close to up/down to avoid zero cross product
-    let refVec = select(vec3f(0.0, 1.0, 0.0), vec3f(1.0, 0.0, 0.0), abs(N.y) > 0.9);
-    let T = normalize(cross(N, refVec));
-    let B = cross(N, T);
+
+    // Get edge vectors perpendicular to N
+    let dp2perp = cross(dPdy, N);
+    let dp1perp = cross(N, dPdx);
+
+    // Construct tangent and bitangent
+    // Negate T to match glTF/OpenGL tangent space convention
+    var T = -(dp2perp * dUVdx.x + dp1perp * dUVdy.x);
+    var B = dp2perp * dUVdx.y + dp1perp * dUVdy.y;
+
+    // Scale-invariant normalization
+    let invmax = inverseSqrt(max(dot(T, T), dot(B, B)));
+    T = T * invmax;
+    B = B * invmax;
+
+    // Handle degenerate cases (no valid UVs)
+    if (length(T) < 0.001 || length(B) < 0.001) {
+        let refVec = select(vec3f(0.0, 1.0, 0.0), vec3f(1.0, 0.0, 0.0), abs(N.y) > 0.9);
+        T = normalize(cross(N, refVec));
+        B = cross(N, T);
+    }
+
+    // For double-sided materials: flip tangent and bitangent for back faces
+    if (!frontFacing) {
+        T = -T;
+        B = -B;
+    }
+
     let TBN = mat3x3f(T, B, N);
 
     // Transform tangent space normal to world space

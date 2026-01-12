@@ -734,6 +734,20 @@ class LightingPass extends BasePass {
     getOutputTexture() {
         return this.outputTexture
     }
+
+    /**
+     * Get the light buffer for volumetric fog
+     */
+    getLightBuffer() {
+        return this.lightBuffer
+    }
+
+    /**
+     * Get the current light count
+     */
+    getLightCount() {
+        return this.lights?.length ?? 0
+    }
 }
 
 export { LightingPass }

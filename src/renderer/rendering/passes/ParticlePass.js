@@ -718,10 +718,10 @@ class ParticlePass extends BasePass {
         uniformData[85] = fogAlphas[1]
         uniformData[86] = fogAlphas[2]
         uniformData[87] = 0.0  // padding
-        // fogHeightFade (vec2f) + fogPad2 (vec2f) - floats 88-91
+        // fogHeightFade (vec2f) + fogDebug (f32) + fogPad2 (f32) - floats 88-91
         uniformData[88] = fogHeightFade[0]  // bottomY
         uniformData[89] = fogHeightFade[1]  // topY
-        uniformData[90] = 0.0  // padding
+        uniformData[90] = fogSettings.debug ?? 0  // fogDebug (0=off, 2=show distance)
         uniformData[91] = 0.0  // padding
 
         // Update emitter render settings buffer (lit, emissive, softness, zOffset per emitter)
@@ -774,11 +774,14 @@ class ParticlePass extends BasePass {
         const hasAdditive = emitters.some(e => e.blendMode === 'additive')
 
         // Draw alpha-blended particles first (back-to-front would be ideal, but we draw all)
+        // NOTE: Must submit each pass separately because writeBuffer is immediate
+        // but render passes execute when command buffer is submitted
         if (hasAlpha) {
             uniformData[48] = 0.0  // blendMode = alpha
             device.queue.writeBuffer(this.renderUniformBuffer, 0, uniformData)
 
-            const renderPass = commandEncoder.beginRenderPass({
+            const alphaEncoder = device.createCommandEncoder({ label: 'Particle Alpha Pass' })
+            const renderPass = alphaEncoder.beginRenderPass({
                 colorAttachments: [{
                     view: this.outputTexture.view,
                     loadOp: 'load',
@@ -795,6 +798,7 @@ class ParticlePass extends BasePass {
             renderPass.setBindGroup(0, renderBindGroup)
             renderPass.draw(6, maxParticles, 0, 0)
             renderPass.end()
+            device.queue.submit([alphaEncoder.finish()])
         }
 
         // Draw additive particles (order doesn't matter for additive)
@@ -802,7 +806,8 @@ class ParticlePass extends BasePass {
             uniformData[48] = 1.0  // blendMode = additive
             device.queue.writeBuffer(this.renderUniformBuffer, 0, uniformData)
 
-            const renderPass = commandEncoder.beginRenderPass({
+            const additiveEncoder = device.createCommandEncoder({ label: 'Particle Additive Pass' })
+            const renderPass = additiveEncoder.beginRenderPass({
                 colorAttachments: [{
                     view: this.outputTexture.view,
                     loadOp: 'load',
@@ -819,6 +824,7 @@ class ParticlePass extends BasePass {
             renderPass.setBindGroup(0, renderBindGroup)
             renderPass.draw(6, maxParticles, 0, 0)
             renderPass.end()
+            device.queue.submit([additiveEncoder.finish()])
         }
     }
 

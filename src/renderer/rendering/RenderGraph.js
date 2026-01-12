@@ -12,7 +12,9 @@ import { BloomPass } from "./passes/BloomPass.js"
 import { TransparentPass } from "./passes/TransparentPass.js"
 import { ParticlePass } from "./passes/ParticlePass.js"
 import { FogPass } from "./passes/FogPass.js"
+import { VolumetricFogPass } from "./passes/VolumetricFogPass.js"
 import { PostProcessPass } from "./passes/PostProcessPass.js"
+import { CRTPass } from "./passes/CRTPass.js"
 import { AmbientCapturePass } from "./passes/AmbientCapturePass.js"
 import { HistoryBufferManager } from "./HistoryBufferManager.js"
 import { CullingSystem } from "../core/CullingSystem.js"
@@ -69,6 +71,7 @@ class RenderGraph {
             transparent: null,         // Pass 11: Forward transparent objects
             particles: null,           // Pass 12: GPU particle rendering
             postProcess: null,         // Pass 13: Tone mapping + bloom composite
+            crt: null,                 // Pass 14: CRT effect (optional)
         }
 
         // History buffer manager for temporal effects
@@ -170,7 +173,9 @@ class RenderGraph {
         this.passes.transparent = new TransparentPass(this.engine)
         this.passes.particles = new ParticlePass(this.engine)
         this.passes.fog = new FogPass(this.engine)
+        this.passes.volumetricFog = new VolumetricFogPass(this.engine)
         this.passes.postProcess = new PostProcessPass(this.engine)
+        this.passes.crt = new CRTPass(this.engine)
 
         // Create history buffer manager for temporal effects
         const { canvas } = this.engine
@@ -241,8 +246,16 @@ class RenderGraph {
         timings.push({ name: 'init:fog', time: performance.now() - start })
 
         start = performance.now()
+        await this.passes.volumetricFog.initialize()
+        timings.push({ name: 'init:volumetricFog', time: performance.now() - start })
+
+        start = performance.now()
         await this.passes.postProcess.initialize()
         timings.push({ name: 'init:postProcess', time: performance.now() - start })
+
+        start = performance.now()
+        await this.passes.crt.initialize()
+        timings.push({ name: 'init:crt', time: performance.now() - start })
 
         // Wire up dependencies
         start = performance.now()
@@ -338,6 +351,12 @@ class RenderGraph {
         this.passes.particles.setEnvironmentMap(environmentMap, this.environmentEncoding)
         this.passes.particles.setLightingPass(this.passes.lighting)
 
+        // Wire up volumetric fog pass
+        this.passes.volumetricFog.setGBuffer(this.passes.gbuffer.getGBuffer())
+        this.passes.volumetricFog.setShadowPass(this.passes.shadow)
+        this.passes.volumetricFog.setLightingPass(this.passes.lighting)
+        this.passes.volumetricFog.setHiZPass(this.passes.hiz)
+
         this.passes.postProcess.setInputTexture(this.passes.lighting.getOutputTexture())
         this.passes.postProcess.setNoise(this.noiseTexture, this.noiseSize, this.noiseAnimated)
 
@@ -346,6 +365,9 @@ class RenderGraph {
             this.passes.postProcess.setGuiCanvas(this.engine.guiCanvas)
         }
 
+        // Invalidate occlusion culling after initialization to ensure warmup starts fresh
+        // This prevents stale depth data from causing incorrect culling on first frames
+        this.invalidateOcclusionCulling()
     }
 
     /**
@@ -489,6 +511,7 @@ class RenderGraph {
 
             if (entity.model) {
                 // Update bsphere from asset for shadow culling
+                // Note: For skinned models, bsphere is pre-computed as combined sphere of all submeshes
                 const asset = assetManager.get(entity.model)
                 if (asset?.bsphere) {
                     entity._bsphere = transformBoundingSphere(asset.bsphere, entity._matrix)
@@ -729,15 +752,9 @@ class RenderGraph {
             await this.passes.transparent.execute(passContext)
         }
 
-        // Pass 12: Particles (GPU particle system)
-        if (this.passes.particles && this.particleSystem.getActiveEmitters().length > 0) {
-            this.passes.particles.setOutputTexture(hdrSource)
-            await this.passes.particles.execute(passContext)
-        }
-
-        // Pass 13: Fog (distance-based fog with height fade)
-        // Applied AFTER transparent and particles to the combined HDR buffer
-        // Uses scene depth - transparent/particles don't write depth so fog uses what's behind them
+        // Pass 12: Fog (distance-based fog with height fade)
+        // Applied BEFORE particles - scene fog uses scene depth
+        // Particles will apply their own fog based on particle position
         const fogEnabled = this.engine?.settings?.environment?.fog?.enabled
         if (this.passes.fog && fogEnabled) {
             this.passes.fog.setInputTexture(hdrSource)
@@ -746,6 +763,27 @@ class RenderGraph {
             const fogOutput = this.passes.fog.getOutputTexture()
             if (fogOutput && fogOutput !== hdrSource) {
                 hdrSource = fogOutput
+            }
+        }
+
+        // Pass 12b: Particles (GPU particle system)
+        // Rendered AFTER simple fog, BEFORE volumetric fog
+        // Particles apply their own fog based on particle world position
+        if (this.passes.particles && this.particleSystem.getActiveEmitters().length > 0) {
+            this.passes.particles.setOutputTexture(hdrSource)
+            await this.passes.particles.execute(passContext)
+        }
+
+        // Pass 13: Volumetric Fog (light scattering through particles)
+        // Applied last - additive light scattering on top of everything
+        const volumetricFogEnabled = this.engine?.settings?.volumetricFog?.enabled
+        if (this.passes.volumetricFog && volumetricFogEnabled) {
+            this.passes.volumetricFog.setInputTexture(hdrSource)
+            this.passes.volumetricFog.setGBuffer(gbuffer)
+            await this.passes.volumetricFog.execute(passContext)
+            const volFogOutput = this.passes.volumetricFog.getOutputTexture()
+            if (volFogOutput && volFogOutput !== hdrSource) {
+                hdrSource = volFogOutput
             }
         }
 
@@ -760,9 +798,26 @@ class RenderGraph {
             this.passes.postProcess.setBloomTexture(null)
         }
 
-        // Pass 13: PostProcess (bloom composite + tone mapping to canvas)
+        // Pass 13: PostProcess (bloom composite + tone mapping)
+        // When CRT is enabled, outputs to intermediate texture instead of canvas
         this.passes.postProcess.setInputTexture(hdrSource)
         await this.passes.postProcess.execute(passContext)
+
+        // Pass 14: CRT effect (optional - outputs to canvas)
+        const crtEnabled = this.engine?.settings?.crt?.enabled
+        const crtUpscaleEnabled = this.engine?.settings?.crt?.upscaleEnabled
+        if (crtEnabled || crtUpscaleEnabled) {
+            // Wire CRT pass to receive PostProcess intermediate output
+            const postProcessOutput = this.passes.postProcess.getOutputTexture()
+            if (postProcessOutput) {
+                this.passes.crt.setInputTexture(postProcessOutput)
+                this.passes.crt.setRenderSize(
+                    this.passes.gbuffer.getGBuffer()?.depth?.width || canvas.width,
+                    this.passes.gbuffer.getGBuffer()?.depth?.height || canvas.height
+                )
+                await this.passes.crt.execute(passContext)
+            }
+        }
 
         // Swap history buffers and save camera matrices for next frame
         this.historyManager.swap(camera)
@@ -855,6 +910,50 @@ class RenderGraph {
             }
 
             const asset = assetManager.get(modelId)
+
+            // Handle parent GLTF paths (expand to all submeshes)
+            // If entity.model is "model.glb" instead of "model.glb|meshName", expand to all meshes
+            if (asset?.meshNames && !asset.mesh) {
+                // This is a parent GLTF asset - expand to all submeshes
+                // Each submesh will share the same entity transform/animation/phase
+                for (const meshName of asset.meshNames) {
+                    const submeshId = assetManager.createModelId(modelId, meshName)
+                    const submeshAsset = assetManager.get(submeshId)
+                    if (!submeshAsset?.mesh) continue
+
+                    // Add this submesh to the appropriate group
+                    if (submeshAsset.hasSkin && submeshAsset.skin) {
+                        // Skinned submesh - process each entity for this submesh
+                        // Expanded submeshes ALWAYS use phase-grouped instancing (even when close)
+                        // Individual rendering doesn't support multi-submesh expansion
+                        for (const item of entities) {
+                            const entity = item.entity
+
+                            const animation = entity.animation || 'default'
+                            const phase = entity.phase || 0
+                            const quantizedPhase = Math.floor(phase / 0.05) * 0.05
+                            const key = `${submeshId}|${animation}|${quantizedPhase.toFixed(2)}`
+
+                            if (!skinnedInstancedGroups.has(key)) {
+                                skinnedInstancedGroups.set(key, {
+                                    modelId: submeshId, animation, phase: quantizedPhase, asset: submeshAsset, entities: []
+                                })
+                            }
+                            skinnedInstancedGroups.get(key).entities.push(item)
+                        }
+                    } else {
+                        // Non-skinned submesh - add to non-skinned groups
+                        if (!nonSkinnedGroups.has(submeshId)) {
+                            nonSkinnedGroups.set(submeshId, { asset: submeshAsset, entities: [] })
+                        }
+                        for (const item of entities) {
+                            nonSkinnedGroups.get(submeshId).entities.push(item)
+                        }
+                    }
+                }
+                continue  // Skip normal processing, we've handled expansion
+            }
+
             if (!asset?.mesh) continue
 
             if (asset.hasSkin && asset.skin) {
@@ -980,7 +1079,9 @@ class RenderGraph {
         }
 
         // Process individual skinned entities (close to camera, with blending support)
-        const globalTime = performance.now() / 1000
+        // Animation time can be scaled by settings.animation.speed (default 1.0)
+        const animationSpeed = this.engine?.settings?.animation?.speed ?? 1.0
+        const globalTime = (performance.now() / 1000) * animationSpeed
 
         for (const { id: entityId, entity, asset, modelId } of skinnedIndividualEntities) {
             const entityAnimation = entity.animation || 'default'
@@ -1030,7 +1131,9 @@ class RenderGraph {
                     material: asset.mesh.material,
                     skin: individualSkin,
                     hasSkin: true,
-                    uid: `individual_${entityId}`
+                    uid: `individual_${entityId}`,
+                    // Use asset's combined bsphere for culling (all skinned submeshes share one sphere)
+                    combinedBsphere: asset.bsphere || null
                 }
 
                 cached = {
@@ -1191,7 +1294,9 @@ class RenderGraph {
                     material: asset.mesh.material,
                     skin: clonedSkin,
                     hasSkin: true,
-                    uid: asset.mesh.uid + '_phase_' + key.replace(/[^a-zA-Z0-9]/g, '_')
+                    uid: asset.mesh.uid + '_phase_' + key.replace(/[^a-zA-Z0-9]/g, '_'),
+                    // Use asset's combined bsphere for culling (all skinned submeshes share one sphere)
+                    combinedBsphere: asset.bsphere || null
                 }
 
                 cached = { skin: clonedSkin, mesh: phaseMesh, geometry: phaseGeometry }
@@ -1386,12 +1491,26 @@ class RenderGraph {
 
     /**
      * Handle window resize
-     * @param {number} width - New width
-     * @param {number} height - New height
+     * @param {number} width - Canvas width (full device pixels)
+     * @param {number} height - Canvas height (full device pixels)
+     * @param {number} renderScale - Scale for internal rendering (1.0 = full resolution)
      */
-    async resize(width, height) {
+    async resize(width, height, renderScale = 1.0) {
         const timings = []
         const startTotal = performance.now()
+
+        // Store full canvas dimensions (for CRT pixel-perfect output)
+        this.canvasWidth = width
+        this.canvasHeight = height
+
+        // Calculate internal render dimensions (scaled for performance)
+        const renderWidth = Math.max(1, Math.round(width * renderScale))
+        const renderHeight = Math.max(1, Math.round(height * renderScale))
+
+        // Store render dimensions
+        this.renderWidth = renderWidth
+        this.renderHeight = renderHeight
+        this.renderScale = renderScale
 
         // Calculate effect scale for expensive passes
         // When autoScale.enabled is false but enabledForEffects is true and height > maxHeight,
@@ -1400,26 +1519,29 @@ class RenderGraph {
         let effectScale = 1.0
 
         if (autoScale && !autoScale.enabled && autoScale.enabledForEffects) {
-            if (height > (autoScale.maxHeight ?? 1536)) {
+            if (renderHeight > (autoScale.maxHeight ?? 1536)) {
                 effectScale = autoScale.scaleFactor ?? 0.5
                 if (!this._effectScaleWarned) {
-                    console.log(`Effect auto-scale: Reducing effect resolution by ${effectScale} (height: ${height}px > ${autoScale.maxHeight}px)`)
+                    console.log(`Effect auto-scale: Reducing effect resolution by ${effectScale} (height: ${renderHeight}px > ${autoScale.maxHeight}px)`)
                     this._effectScaleWarned = true
                 }
             } else if (this._effectScaleWarned) {
-                console.log(`Effect auto-scale: Restoring full effect resolution (height: ${height}px <= ${autoScale.maxHeight}px)`)
+                console.log(`Effect auto-scale: Restoring full effect resolution (height: ${renderHeight}px <= ${autoScale.maxHeight}px)`)
                 this._effectScaleWarned = false
             }
         }
 
-        // Expensive passes that should be scaled down at high resolutions
-        // Note: ssgiTile is NOT scaled because it computes tile grid from full-res GBuffer
-        // Note: planarReflection combines effectScale with its own resolution setting
-        const scaledPasses = new Set(['bloom', 'ao', 'ssgi', 'planarReflection'])
+        // Passes that render at full canvas resolution (for pixel-perfect output)
+        const fullResPasses = new Set(['crt'])
 
-        // Calculate scaled dimensions for expensive effects
-        const effectWidth = Math.max(1, Math.floor(width * effectScale))
-        const effectHeight = Math.max(1, Math.floor(height * effectScale))
+        // Expensive passes that should be scaled down at high resolutions
+        // Note: ssgiTile and ssgi must be at the same resolution (they share tile grid)
+        // Note: planarReflection combines effectScale with its own resolution setting
+        const effectScaledPasses = new Set(['bloom', 'ao', 'planarReflection'])
+
+        // Calculate scaled dimensions for expensive effects (relative to render dimensions)
+        const effectWidth = Math.max(1, Math.floor(renderWidth * effectScale))
+        const effectHeight = Math.max(1, Math.floor(renderHeight * effectScale))
 
         // Store effect dimensions for use in rendering
         this.effectWidth = effectWidth
@@ -1430,19 +1552,29 @@ class RenderGraph {
         for (const passName in this.passes) {
             if (this.passes[passName]) {
                 const start = performance.now()
-                // Use scaled dimensions for expensive passes
-                const useScaled = scaledPasses.has(passName) && effectScale < 1.0
-                const w = useScaled ? effectWidth : width
-                const h = useScaled ? effectHeight : height
+                let w, h
+                if (fullResPasses.has(passName)) {
+                    // CRT and similar passes render at full canvas resolution
+                    w = width
+                    h = height
+                } else if (effectScaledPasses.has(passName) && effectScale < 1.0) {
+                    // Expensive effects use effect-scaled dimensions
+                    w = effectWidth
+                    h = effectHeight
+                } else {
+                    // All other passes use render-scaled dimensions
+                    w = renderWidth
+                    h = renderHeight
+                }
                 await this.passes[passName].resize(w, h)
                 timings.push({ name: `pass:${passName}`, time: performance.now() - start })
             }
         }
 
-        // Resize history buffer manager
+        // Resize history buffer manager (uses render dimensions)
         if (this.historyManager) {
             const start = performance.now()
-            await this.historyManager.resize(width, height)
+            await this.historyManager.resize(renderWidth, renderHeight)
             timings.push({ name: 'historyManager', time: performance.now() - start })
         }
 
@@ -1467,8 +1599,20 @@ class RenderGraph {
             this.passes.lighting.setHiZPass(this.passes.hiz)
             this.passes.transparent.setHiZPass(this.passes.hiz)
             this.passes.shadow.setHiZPass(this.passes.hiz)
+            if (this.passes.volumetricFog) {
+                this.passes.volumetricFog.setHiZPass(this.passes.hiz)
+            }
         }
         timings.push({ name: 'rewire:hiz', time: performance.now() - start })
+
+        // Rewire volumetric fog pass
+        if (this.passes.volumetricFog) {
+            start = performance.now()
+            this.passes.volumetricFog.setGBuffer(this.passes.gbuffer.getGBuffer())
+            this.passes.volumetricFog.setShadowPass(this.passes.shadow)
+            this.passes.volumetricFog.setLightingPass(this.passes.lighting)
+            timings.push({ name: 'rewire:volumetricFog', time: performance.now() - start })
+        }
 
         start = performance.now()
         this.passes.shadow.setNoise(this.noiseTexture, this.noiseSize, this.noiseAnimated)
@@ -1951,6 +2095,17 @@ class RenderGraph {
     }
 
     /**
+     * Invalidate occlusion culling data and reset warmup period.
+     * Call this after scene loading or major camera changes to prevent
+     * incorrect occlusion culling with stale depth buffer data.
+     */
+    invalidateOcclusionCulling() {
+        if (this.passes.hiz) {
+            this.passes.hiz.invalidate()
+        }
+    }
+
+    /**
      * Load noise texture based on settings
      * Supports: 'bluenoise' (loaded from file), 'bayer8' (generated 8x8 ordered dither)
      */
@@ -2041,6 +2196,45 @@ class RenderGraph {
             width: 8,
             height: 8
         }
+    }
+
+    /**
+     * Reload noise texture and update all passes that use it
+     * Called when noise settings change at runtime
+     */
+    async reloadNoiseTexture() {
+        // Destroy old texture if it exists
+        if (this.noiseTexture?.texture) {
+            this.noiseTexture.texture.destroy()
+        }
+
+        // Load new noise texture based on current settings
+        await this._loadNoiseTexture()
+
+        // Update all passes that use noise
+        if (this.passes.gbuffer) {
+            this.passes.gbuffer.setNoise(this.noiseTexture, this.noiseSize, this.noiseAnimated)
+        }
+        if (this.passes.shadow) {
+            this.passes.shadow.setNoise(this.noiseTexture, this.noiseSize, this.noiseAnimated)
+        }
+        if (this.passes.lighting) {
+            this.passes.lighting.setNoise(this.noiseTexture, this.noiseSize, this.noiseAnimated)
+        }
+        if (this.passes.ao) {
+            this.passes.ao.setNoise(this.noiseTexture, this.noiseSize, this.noiseAnimated)
+        }
+        if (this.passes.transparent) {
+            this.passes.transparent.setNoise(this.noiseTexture, this.noiseSize, this.noiseAnimated)
+        }
+        if (this.passes.postProcess) {
+            this.passes.postProcess.setNoise(this.noiseTexture, this.noiseSize, this.noiseAnimated)
+        }
+        if (this.passes.renderPost) {
+            this.passes.renderPost.setNoise(this.noiseTexture, this.noiseSize, this.noiseAnimated)
+        }
+
+        console.log(`RenderGraph: Reloaded noise texture (${this.engine?.settings?.noise?.type || 'bluenoise'})`)
     }
 
     /**

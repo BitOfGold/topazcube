@@ -42,19 +42,20 @@ class DebugUI {
 
         // Create settings folders
         this._createRenderingFolder()
-        this._createAOFolder()
-        this._createShadowFolder()
-        this._createMainLightFolder()
+        this._createCameraFolder()
         this._createEnvironmentFolder()
         this._createLightingFolder()
-        this._createCullingFolder()
-        this._createSSGIFolder()
-        this._createBloomFolder()
+        this._createMainLightFolder()
+        this._createShadowFolder()
         this._createPlanarReflectionFolder()
+        this._createAOFolder()
         this._createAmbientCaptureFolder()
-        this._createNoiseFolder()
+        this._createSSGIFolder()
+        this._createVolumetricFogFolder()
+        this._createBloomFolder()
+        this._createTonemapFolder()
         this._createDitheringFolder()
-        this._createCameraFolder()
+        this._createCRTFolder()
         this._createDebugFolder()
 
         // Close all folders by default
@@ -244,6 +245,42 @@ class DebugUI {
                     this.gui.domElement.style.display = 'none'
                 }
             })
+
+        // Culling subfolder
+        if (s.culling) {
+            const cullFolder = folder.addFolder('Culling')
+            cullFolder.add(s.culling, 'frustumEnabled').name('Frustum Culling')
+
+            if (s.occlusionCulling) {
+                cullFolder.add(s.occlusionCulling, 'enabled').name('Occlusion Culling')
+                cullFolder.add(s.occlusionCulling, 'threshold', 0.1, 2.0, 0.1).name('Occlusion Threshold')
+            }
+
+            // Planar reflection culling sub-folder
+            if (s.culling.planarReflection) {
+                const prFolder = cullFolder.addFolder('Planar Reflection')
+                prFolder.add(s.culling.planarReflection, 'frustum').name('Frustum Culling')
+                prFolder.add(s.culling.planarReflection, 'maxDistance', 10, 200, 10).name('Max Distance')
+                prFolder.add(s.culling.planarReflection, 'maxSkinned', 0, 100, 1).name('Max Skinned')
+                prFolder.add(s.culling.planarReflection, 'minPixelSize', 0, 16, 1).name('Min Pixel Size')
+                prFolder.close()
+            }
+            cullFolder.close()
+        }
+
+        // Noise subfolder
+        if (s.noise) {
+            const noiseFolder = folder.addFolder('Noise')
+            noiseFolder.add(s.noise, 'type', ['bluenoise', 'bayer8']).name('Type')
+                .onChange(() => {
+                    // Reload noise texture when type changes
+                    if (this.engine.renderer?.renderGraph) {
+                        this.engine.renderer.renderGraph.reloadNoiseTexture()
+                    }
+                })
+            noiseFolder.add(s.noise, 'animated').name('Animated')
+            noiseFolder.close()
+        }
     }
 
     _createAOFolder() {
@@ -344,6 +381,9 @@ class DebugUI {
             fogFolder.add(s.environment.fog.heightFade, '0', -100, 100, 1).name('Bottom Y')
             fogFolder.add(s.environment.fog.heightFade, '1', -50, 200, 5).name('Top Y')
             fogFolder.add(s.environment.fog, 'brightResist', 0, 1, 0.05).name('Bright Resist')
+            // Initialize debug if not present
+            if (s.environment.fog.debug === undefined) s.environment.fog.debug = 0
+            fogFolder.add(s.environment.fog, 'debug', 0, 10, 1).name('Debug Mode')
         }
     }
 
@@ -364,31 +404,6 @@ class DebugUI {
         }
     }
 
-    _createCullingFolder() {
-        const s = this.engine.settings
-        if (!s.culling) return
-
-        const folder = this.gui.addFolder('Culling')
-        this.folders.culling = folder
-
-        folder.add(s.culling, 'frustumEnabled').name('Frustum Culling')
-
-        if (s.occlusionCulling) {
-            folder.add(s.occlusionCulling, 'enabled').name('Occlusion Culling')
-            folder.add(s.occlusionCulling, 'threshold', 0.1, 2.0, 0.1).name('Occlusion Threshold')
-        }
-
-        // Planar reflection culling sub-folder
-        if (s.culling.planarReflection) {
-            const prFolder = folder.addFolder('Planar Reflection')
-            prFolder.add(s.culling.planarReflection, 'frustum').name('Frustum Culling')
-            prFolder.add(s.culling.planarReflection, 'maxDistance', 10, 200, 10).name('Max Distance')
-            prFolder.add(s.culling.planarReflection, 'maxSkinned', 0, 100, 1).name('Max Skinned')
-            prFolder.add(s.culling.planarReflection, 'minPixelSize', 0, 16, 1).name('Min Pixel Size')
-            prFolder.close()
-        }
-    }
-
     _createSSGIFolder() {
         const s = this.engine.settings
         if (!s.ssgi) return
@@ -402,6 +417,71 @@ class DebugUI {
         folder.add(s.ssgi, 'maxBrightness', 1.0, 50.0, 1.0).name('Max Brightness')
         folder.add(s.ssgi, 'sampleRadius', 0.5, 4.0, 0.5).name('Sample Radius')
         folder.add(s.ssgi, 'saturateLevel', 0.1, 2.0, 0.1).name('Saturate Level')
+    }
+
+    _createVolumetricFogFolder() {
+        const s = this.engine.settings
+        if (!s.volumetricFog) return
+
+        // Initialize defaults for missing properties
+        const vf = s.volumetricFog
+        if (vf.density === undefined && vf.densityMultiplier === undefined) vf.density = 0.5
+        if (vf.scatterStrength === undefined) vf.scatterStrength = 1.0
+        if (!vf.heightRange) vf.heightRange = [-5, 20]
+        if (vf.resolution === undefined) vf.resolution = 0.25
+        if (vf.maxSamples === undefined) vf.maxSamples = 32
+        if (vf.blurRadius === undefined) vf.blurRadius = 4
+        if (vf.noiseStrength === undefined) vf.noiseStrength = 1.0
+        if (vf.noiseScale === undefined) vf.noiseScale = 0.25
+        if (vf.noiseAnimated === undefined) vf.noiseAnimated = true
+        if (vf.shadowsEnabled === undefined) vf.shadowsEnabled = true
+        if (vf.mainLightScatter === undefined) vf.mainLightScatter = 1.0
+        if (vf.mainLightScatterDark === undefined) vf.mainLightScatterDark = 3.0
+        if (vf.mainLightSaturation === undefined) vf.mainLightSaturation = 1.0
+        if (vf.brightnessThreshold === undefined) vf.brightnessThreshold = 1.0
+        if (vf.minVisibility === undefined) vf.minVisibility = 0.15
+        if (vf.skyBrightness === undefined) vf.skyBrightness = 5.0
+        if (vf.debug === undefined) vf.debug = 0
+
+        const folder = this.gui.addFolder('Volumetric Fog')
+        this.folders.volumetricFog = folder
+
+        folder.add(vf, 'enabled').name('Enabled')
+
+        // Density - use whichever property exists
+        if (vf.density !== undefined) {
+            folder.add(vf, 'density', 0.0, 2.0, 0.05).name('Density')
+        } else if (vf.densityMultiplier !== undefined) {
+            folder.add(vf, 'densityMultiplier', 0.0, 2.0, 0.05).name('Density')
+        }
+
+        folder.add(vf, 'scatterStrength', 0.0, 10.0, 0.1).name('Scatter (Lights)')
+        folder.add(vf, 'mainLightScatter', 0.0, 5.0, 0.1).name('Sun Scatter (Light)')
+        folder.add(vf, 'mainLightScatterDark', 0.0, 10.0, 0.1).name('Sun Scatter (Dark)')
+        folder.add(vf, 'mainLightSaturation', 0.0, 1.0, 0.01).name('Sun Saturation')
+        folder.add(vf, 'brightnessThreshold', 0.1, 5.0, 0.1).name('Bright Threshold')
+        folder.add(vf, 'minVisibility', 0.0, 1.0, 0.05).name('Min Visibility')
+        folder.add(vf, 'skyBrightness', 0.0, 10.0, 0.5).name('Sky Brightness')
+        folder.add(vf.heightRange, '0', -50, 50, 1).name('Height Bottom')
+        folder.add(vf.heightRange, '1', -10, 100, 1).name('Height Top')
+
+        // Quality sub-folder
+        const qualityFolder = folder.addFolder('Quality')
+        qualityFolder.add(vf, 'resolution', 0.125, 0.5, 0.125).name('Resolution')
+        qualityFolder.add(vf, 'maxSamples', 16, 128, 8).name('Max Samples')
+        qualityFolder.add(vf, 'blurRadius', 0, 8, 1).name('Blur Radius')
+        qualityFolder.close()
+
+        // Noise sub-folder
+        const noiseFolder = folder.addFolder('Noise')
+        noiseFolder.add(vf, 'noiseStrength', 0.0, 1.0, 0.1).name('Strength')
+        noiseFolder.add(vf, 'noiseScale', 0.05, 1.0, 0.05).name('Scale (Detail)')
+        noiseFolder.add(vf, 'noiseAnimated').name('Animated')
+        noiseFolder.close()
+
+        // Shadows & Debug
+        folder.add(vf, 'shadowsEnabled').name('Shadows')
+        folder.add(vf, 'debug', 0, 12, 1).name('Debug Mode')
     }
 
     _createBloomFolder() {
@@ -423,6 +503,19 @@ class DebugUI {
         }
     }
 
+    _createTonemapFolder() {
+        const s = this.engine.settings
+        if (!s.rendering) return
+
+        // Ensure tonemapMode exists
+        if (s.rendering.tonemapMode === undefined) s.rendering.tonemapMode = 0
+
+        const folder = this.gui.addFolder('Tone Mapping')
+        this.folders.tonemap = folder
+
+        folder.add(s.rendering, 'tonemapMode', { 'ACES': 0, 'Reinhard': 1, 'None (Linear)': 2 }).name('Mode')
+    }
+
     _createPlanarReflectionFolder() {
         const s = this.engine.settings
         if (!s.planarReflection) return
@@ -442,7 +535,7 @@ class DebugUI {
         const s = this.engine.settings
         if (!s.ambientCapture) return
 
-        const folder = this.gui.addFolder('Ambient Capture')
+        const folder = this.gui.addFolder('Probe GI (Ambient Capture)')
         this.folders.ambientCapture = folder
 
         folder.add(s.ambientCapture, 'enabled').name('Enabled')
@@ -450,17 +543,6 @@ class DebugUI {
         folder.add(s.ambientCapture, 'maxDistance', 5, 100, 5).name('Max Distance')
         folder.add(s.ambientCapture, 'emissiveBoost', 0.0, 10.0, 0.1).name('Emissive Boost')
         folder.add(s.ambientCapture, 'saturateLevel', 0.0, 2.0, 0.05).name('Saturate Level')
-    }
-
-    _createNoiseFolder() {
-        const s = this.engine.settings
-        if (!s.noise) return
-
-        const folder = this.gui.addFolder('Noise')
-        this.folders.noise = folder
-
-        folder.add(s.noise, 'type', ['bluenoise', 'bayer8']).name('Type')
-        folder.add(s.noise, 'animated').name('Animated')
     }
 
     _createDitheringFolder() {
@@ -472,6 +554,55 @@ class DebugUI {
 
         folder.add(s.dithering, 'enabled').name('Enabled')
         folder.add(s.dithering, 'colorLevels', 4, 256, 1).name('Color Levels')
+    }
+
+    _createCRTFolder() {
+        const s = this.engine.settings
+        if (!s.crt) return
+
+        const folder = this.gui.addFolder('CRT Effect')
+        this.folders.crt = folder
+
+        folder.add(s.crt, 'enabled').name('CRT Enabled')
+        folder.add(s.crt, 'upscaleEnabled').name('Upscale Only')
+        folder.add(s.crt, 'upscaleTarget', 1, 8, 1).name('Upscale Target')
+
+        // Geometry sub-folder
+        const geomFolder = folder.addFolder('Geometry')
+        geomFolder.add(s.crt, 'curvature', 0, 0.25, 0.005).name('Curvature')
+        geomFolder.add(s.crt, 'cornerRadius', 0, 0.2, 0.005).name('Corner Radius')
+        geomFolder.add(s.crt, 'zoom', 1.0, 1.25, 0.005).name('Zoom')
+        geomFolder.close()
+
+        // Scanlines sub-folder
+        const scanFolder = folder.addFolder('Scanlines')
+        scanFolder.add(s.crt, 'scanlineIntensity', 0, 1, 0.05).name('Intensity')
+        scanFolder.add(s.crt, 'scanlineWidth', 0, 1, 0.05).name('Width')
+        scanFolder.add(s.crt, 'scanlineBrightBoost', 0, 2, 0.05).name('Bright Boost')
+        scanFolder.add(s.crt, 'scanlineHeight', 1, 10, 1).name('Height (px)')
+        scanFolder.close()
+
+        // Convergence sub-folder
+        const convFolder = folder.addFolder('RGB Convergence')
+        convFolder.add(s.crt.convergence, '0', -3, 3, 0.1).name('Red X Offset')
+        convFolder.add(s.crt.convergence, '1', -3, 3, 0.1).name('Green X Offset')
+        convFolder.add(s.crt.convergence, '2', -3, 3, 0.1).name('Blue X Offset')
+        convFolder.close()
+
+        // Phosphor mask sub-folder
+        const maskFolder = folder.addFolder('Phosphor Mask')
+        maskFolder.add(s.crt, 'maskType', ['none', 'aperture', 'slot', 'shadow']).name('Type')
+        maskFolder.add(s.crt, 'maskIntensity', 0, 1, 0.05).name('Intensity')
+        maskFolder.close()
+
+        // Vignette sub-folder
+        const vigFolder = folder.addFolder('Vignette')
+        vigFolder.add(s.crt, 'vignetteIntensity', 0, 1, 0.05).name('Intensity')
+        vigFolder.add(s.crt, 'vignetteSize', 0.1, 1, 0.05).name('Size')
+        vigFolder.close()
+
+        // Blur (top level, not in subfolder)
+        folder.add(s.crt, 'blurSize', 0, 8, 0.1).name('H-Blur (px)')
     }
 
     _createCameraFolder() {
